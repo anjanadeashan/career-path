@@ -38,6 +38,9 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
       - name: Pull Vercel project metadata
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
