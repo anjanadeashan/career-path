@@ -1,4 +1,10 @@
 import os
+import nltk
+
+# Vercel's filesystem is read-only except /tmp — redirect NLTK data writes there
+nltk.data.path.insert(0, '/tmp/nltk_data')
+os.environ.setdefault('NLTK_DATA', '/tmp/nltk_data')
+
 from app import create_app
 
 # Create Flask app instance

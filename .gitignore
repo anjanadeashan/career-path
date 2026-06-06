@@ -1,0 +1,18 @@
+# Vercel local project metadata — never commit
+.vercel
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.env
+venv/
+.venv/
+env/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
