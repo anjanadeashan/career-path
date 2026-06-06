@@ -3,8 +3,7 @@
   "functions": {
     "wsgi.py": {
       "runtime": "@vercel/python",
-      "maxDuration": 60,
-      "maxLambdaSize": "50mb"
+      "maxDuration": 60
     }
   },
   "routes": [
