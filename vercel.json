@@ -1,25 +1,18 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "wsgi.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "50mb"
-      }
+  "functions": {
+    "wsgi.py": {
+      "runtime": "@vercel/python",
+      "maxDuration": 60,
+      "maxLambdaSize": "50mb"
     }
-  ],
+  },
   "routes": [
     {
       "src": "/(.*)",
       "dest": "wsgi.py"
     }
   ],
-  "functions": {
-    "wsgi.py": {
-      "maxDuration": 60
-    }
-  },
   "env": {
     "FLASK_ENV": "production",
     "NLTK_DATA": "/tmp/nltk_data"
