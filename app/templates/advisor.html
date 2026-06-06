@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Career Advisor - CareerAI{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold font-heading"><i class="fa-solid fa-robot text-primary me-2"></i>AI Career Advisor
+        </h1>
+        <p class="text-secondary mx-auto" style="max-width: 600px;">
+            Get personalized professional feedback, custom resume suggestions, and certificate roadmaps designed by our
+            Claude AI integrations.
+        </p>
+    </div>
+
+    {% if not has_resume %}
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center py-5">
+            <div class="glass-card p-5 border-secondary">
+                <i class="fa-solid fa-file-invoice fs-1 text-secondary mb-3"></i>
+                <h3>No Active Resume Found</h3>
+                <p class="text-secondary mb-4">You need to upload your resume first so that the AI Advisor can analyze
+                    your background.</p>
+                <a href="{{ url_for('resume.profile') }}" class="btn gradient-btn px-4 py-2.5">
+                    <i class="fa-solid fa-arrow-up-from-bracket me-2"></i> Upload Resume Now
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row g-4 justify-content-center">
+
+        <!-- Left Side: Interactive Advisor Console -->
+        <div class="col-lg-7">
+            <div class="glass-card p-4 border-secondary h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0 font-heading"><i class="fa-solid fa-graduation-cap text-success me-2"></i>AI
+                        Feedback Report</h3>
+                    <button id="generate-advisor-btn"
+                        class="btn btn-outline-light btn-sm border-secondary d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-arrows-rotate"></i> Recalculate Feedback
+                    </button>
+                </div>
+
+                <!-- Loading Screen -->
+                <div id="advisor-loading" class="text-center py-5 d-none">
+                    <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+                        <span class="visually-hidden">Analyzing...</span>
+                    </div>
+                    <h5>Analyzing Profile via Claude LLM...</h5>
+                    <p class="text-secondary small">This takes about 5-10 seconds to read experience blocks and build
+                        tailored suggestions.</p>
+                </div>
+
+                <!-- Feedback Display -->
+                <div id="advisor-content">
+                    {% if feedback %}
+                    <div id="advisor-rendered-report" class="p-3 rounded bg-dark bg-opacity-40 border border-secondary border-opacity-50 text-secondary markdown-body"
+                        style="line-height: 1.7; font-size: 0.95rem;">
+                        <script id="markdown-data" type="text/markdown">{{ feedback.feedback_text }}</script>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-secondary">
+                        <i class="fa-regular fa-lightbulb fs-1 mb-3 text-warning"></i>
+                        <p>No feedback report computed yet. Click the button below to trigger your first analysis.</p>
+                        <button id="first-generate-btn" class="btn gradient-btn px-4 py-2 mt-2">
+                            <i class="fa-solid fa-wand-magic-sparkles me-2"></i> Generate AI Analysis
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: LinkedIn-Style Recommendations -->
+        <div class="col-lg-4">
+            <div class="glass-card p-4 border-secondary h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <h3 class="mb-4 font-heading text-white"><i
+                            class="fa-brands fa-linkedin text-primary me-2"></i>LinkedIn Pathways</h3>
+
+                    <!-- Career Paths -->
+                    <div class="mb-4">
+                        <h5 class="text-secondary small text-uppercase fw-bold mb-3">Suggested Roles</h5>
+                        <div id="paths-list-container" class="list-group list-group-flush border-0">
+                            {% if feedback and feedback.career_paths %}
+                            {% for path in feedback.career_paths %}
+                            <div
+                                class="list-group-item bg-transparent text-white border-secondary border-opacity-40 px-0 py-2.5 d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-angles-right text-primary"></i> {{ path }}
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <div class="text-muted small">Generate advisor feedback to view roles.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Target Certifications -->
+                    <div>
+                        <h5 class="text-secondary small text-uppercase fw-bold mb-3">Recommended Certifications</h5>
+                        <div id="certs-list-container" class="list-group list-group-flush border-0">
+                            {% if feedback and feedback.recommended_certifications %}
+                            {% for cert in feedback.recommended_certifications %}
+                            <div
+                                class="list-group-item bg-transparent text-white border-secondary border-opacity-40 px-0 py-2.5 d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-award text-warning fs-5"></i> {{ cert }}
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <div class="text-muted small">Generate advisor feedback to view certifications.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-top border-secondary border-opacity-50 mt-4 text-center">
+                    <p class="text-secondary small mb-0"><i class="fa-solid fa-shield-halved text-info me-1"></i>Secure
+                        Claude-3-Haiku Endpoint</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- marked.js Markdown Parser -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const genBtn = document.getElementById('generate-advisor-btn');
+        const firstGenBtn = document.getElementById('first-generate-btn');
+        const loading = document.getElementById('advisor-loading');
+        const content = document.getElementById('advisor-content');
+        const pathsContainer = document.getElementById('paths-list-container');
+        const certsContainer = document.getElementById('certs-list-container');
+
+        // Parse and render raw markdown advisor advice
+        const markdownDataEl = document.getElementById('markdown-data');
+        const renderedReportEl = document.getElementById('advisor-rendered-report');
+        if (markdownDataEl && renderedReportEl && typeof marked !== 'undefined') {
+            const rawMarkdown = markdownDataEl.textContent;
+            renderedReportEl.innerHTML = marked.parse(rawMarkdown);
+        }
+
+        const triggerGeneration = async () => {
+            if (genBtn) genBtn.disabled = true;
+            if (firstGenBtn) firstGenBtn.disabled = true;
+
+            loading.classList.remove('d-none');
+            content.classList.add('d-none');
+
+            try {
+                const response = await fetch('/advisor/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    // Reload page to reflect new database entries cleanly
+                    window.location.reload();
+                } else {
+                    alert(`Error generating advice: ${result.error}`);
+                    loading.classList.add('d-none');
+                    content.classList.remove('d-none');
+                    if (genBtn) genBtn.disabled = false;
+                    if (firstGenBtn) firstGenBtn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Failed to contact advisor engine.");
+                loading.classList.add('d-none');
+                content.classList.remove('d-none');
+                if (genBtn) genBtn.disabled = false;
+                if (firstGenBtn) firstGenBtn.disabled = false;
+            }
+        };
+
+        if (genBtn) genBtn.addEventListener('click', triggerGeneration);
+        if (firstGenBtn) firstGenBtn.addEventListener('click', triggerGeneration);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In - CareerAI{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center py-5">
+        <div class="col-md-6 col-lg-5">
+            {% if session.get('awaiting_verification') %}
+                <div class="glass-card p-4 border-warning mb-4 text-white">
+                    <div class="d-flex align-items-start gap-3">
+                        <i class="fa-solid fa-envelope-open-text text-warning fs-3 mt-1"></i>
+                        <div>
+                            <h5 class="fw-bold text-warning font-heading mb-1">Verify Your Email</h5>
+                            <p class="text-secondary small mb-3" style="line-height: 1.5;">
+                                We've sent a verification link to <strong class="text-white">{{ session.get('awaiting_verification') }}</strong>. 
+                                Please confirm your email address before attempting to sign in.
+                            </p>
+                            <div class="d-flex gap-2">
+                                <form action="{{ url_for('auth.resend_verification') }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-warning py-1 px-3 rounded-pill text-dark fw-semibold" style="font-size: 0.72rem;">
+                                        <i class="fa-solid fa-paper-plane me-1"></i>Resend Link
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('auth.clear_verification') }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary py-1 px-3 rounded-pill text-white" style="font-size: 0.72rem; border-color: rgba(255,255,255,0.25);">
+                                        Dismiss
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <div class="glass-card p-5 border-secondary">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold font-heading">Welcome Back</h2>
+                    <p class="text-secondary small">Access your career advisor dashboard</p>
+                </div>
+                
+                <form id="login-form" action="{{ url_for('auth.login') }}" method="POST">
+                    <div class="mb-3">
+                        <label for="email" class="form-label text-secondary small">Email address</label>
+                        <input type="email" class="form-control form-glass" id="email" name="email" placeholder="name@example.com" required autocomplete="username">
+                    </div>
+                    <div class="mb-4">
+                        <label for="password" class="form-label text-secondary small">Password</label>
+                        <input type="password" class="form-control form-glass" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn gradient-btn w-100 py-3 mt-2">Sign In</button>
+                </form>
+                
+                <div class="text-center my-3 text-secondary" style="font-size: 0.85rem;">
+                    <span>or</span>
+                </div>
+
+                <a href="{{ url_for('auth.login_google') }}" class="btn btn-outline-light w-100 d-flex align-items-center justify-content-center gap-2 border-secondary py-2" style="background: rgba(255,255,255,0.02); transition: all 0.2s;">
+                    <!-- Google Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-google text-danger" viewBox="0 0 16 16">
+                        <path d="M15.545 6.558a9.42 9.42 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0c2.204 0 4.079.804 5.517 2.112l-2.22 2.22C10.3 3.393 9.274 3 8 3 5.243 3 3 5.243 3 8s2.243 5 5 5c3.2 0 3.89-2.26 4.005-3.016H8V6.558h7.545z"/>
+                    </svg>
+                    <span>Continue with Google</span>
+                </a>
+                
+                <div class="text-center mt-4">
+                    <p class="text-secondary small mb-0">Don't have an account? <a href="{{ url_for('auth.register') }}" class="text-primary text-decoration-none fw-semibold">Register here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

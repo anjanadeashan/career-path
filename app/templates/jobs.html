@@ -1,0 +1,455 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Role Match - CareerAI{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold font-heading">
+            <i class="fa-solid fa-bullseye text-primary me-2"></i>Job Role Match
+        </h1>
+        <p class="text-secondary mx-auto" style="max-width: 600px;">
+            See how well your current skill profile meets the standard requirements for every industry role.
+        </p>
+    </div>
+
+    {% if not has_resume %}
+        <div class="row justify-content-center">
+            <div class="col-md-7 text-center py-5">
+                <div class="glass-card p-5 border-secondary">
+                    <i class="fa-solid fa-file-invoice fs-1 text-secondary mb-3"></i>
+                    <h3>No Active Resume Found</h3>
+                    <p class="text-secondary mb-4">Upload your resume so we can extract your skills and calculate how well you match each job role.</p>
+                    <a href="{{ url_for('resume.profile') }}" class="btn gradient-btn px-4">
+                        <i class="fa-solid fa-arrow-up-from-bracket me-2"></i> Upload Resume Now
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    {% elif not has_skills %}
+        <div class="row justify-content-center">
+            <div class="col-md-7 text-center py-5">
+                <div class="glass-card p-5 border-secondary">
+                    <i class="fa-solid fa-tags fs-1 text-secondary mb-3"></i>
+                    <h3>No Skills Detected</h3>
+                    <p class="text-secondary mb-4">No skills were found in your profile. Re-upload your resume or add skills manually.</p>
+                    <a href="{{ url_for('resume.profile') }}" class="btn gradient-btn px-4">
+                        <i class="fa-solid fa-user-pen me-2"></i> Manage My Skills
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        {% set strong_matches = role_matches | selectattr('match_percentage', 'ge', 75) | list %}
+        {% set related_roles  = role_matches | selectattr('is_related') | list %}
+
+        <!-- Stats row -->
+        <div class="row g-3 mb-4 justify-content-center">
+            <div class="col-6 col-sm-3">
+                <div class="glass-card p-3 text-center border-secondary">
+                    <div class="fs-2 fw-bold text-primary font-heading">{{ role_matches | length }}</div>
+                    <div class="text-secondary small">Total Roles</div>
+                </div>
+            </div>
+            <div class="col-6 col-sm-3">
+                <div class="glass-card p-3 text-center border-secondary">
+                    <div class="fs-2 fw-bold text-success font-heading">{{ strong_matches | length }}</div>
+                    <div class="text-secondary small">Strong Matches</div>
+                </div>
+            </div>
+            <div class="col-6 col-sm-3">
+                <div class="glass-card p-3 text-center border-secondary">
+                    <div class="fs-2 fw-bold text-info font-heading">{{ related_roles | length }}</div>
+                    <div class="text-secondary small">Related Roles</div>
+                </div>
+            </div>
+            <div class="col-6 col-sm-3">
+                <div class="glass-card p-3 text-center border-secondary">
+                    <div class="fs-2 fw-bold text-warning font-heading">
+                        {{ role_matches[0].match_percentage | int if role_matches else 0 }}%
+                    </div>
+                    <div class="text-secondary small">Best Match</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- ── LEFT: Filter Panel ── -->
+            <div class="col-lg-3">
+                <div class="glass-card p-3 border-secondary filter-panel-sticky">
+
+                    <!-- Search -->
+                    <div class="mb-3">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-transparent border-secondary text-secondary">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </span>
+                            <input type="text" id="role-search" class="form-control form-glass border-secondary"
+                                   placeholder="Search roles…" oninput="applyFilters()" style="font-size:0.85rem;">
+                        </div>
+                    </div>
+
+                    <!-- Match level filter -->
+                    <p class="text-secondary mb-2 fw-semibold" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;">
+                        Match Level
+                    </p>
+                    <div class="d-flex flex-column gap-1 mb-3">
+                        <button class="filter-match-btn btn btn-sm text-start active"
+                                data-match="all" onclick="setMatchFilter(this)">
+                            <i class="fa-solid fa-border-all me-2 text-secondary" style="width:14px;"></i>All Levels
+                        </button>
+                        <button class="filter-match-btn btn btn-sm text-start"
+                                data-match="strong" onclick="setMatchFilter(this)">
+                            <i class="fa-solid fa-circle-check me-2 text-success" style="width:14px;"></i>Strong Match (75%+)
+                        </button>
+                        <button class="filter-match-btn btn btn-sm text-start"
+                                data-match="partial" onclick="setMatchFilter(this)">
+                            <i class="fa-solid fa-circle-half-stroke me-2 text-warning" style="width:14px;"></i>Partial Match
+                        </button>
+                        <button class="filter-match-btn btn btn-sm text-start"
+                                data-match="related" onclick="setMatchFilter(this)">
+                            <i class="fa-solid fa-link me-2 text-info" style="width:14px;"></i>Related to My Skills
+                        </button>
+                    </div>
+
+                    <hr class="border-secondary opacity-25">
+
+                    <!-- Category filter -->
+                    <p class="text-secondary mb-2 fw-semibold" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;">
+                        Category
+                    </p>
+                    <div class="d-flex flex-column gap-1" id="category-filters">
+                        <button class="filter-cat-btn btn btn-sm text-start active"
+                                data-cat="all" onclick="setCatFilter(this)">
+                            <i class="fa-solid fa-grip me-2 text-secondary" style="width:14px;"></i>All Categories
+                            <span class="badge bg-secondary bg-opacity-30 ms-auto float-end">{{ role_matches | length }}</span>
+                        </button>
+                        {% for cat in categories %}
+                            {% set cat_count = role_matches | selectattr('category', 'equalto', cat) | list | length %}
+                            <button class="filter-cat-btn btn btn-sm text-start"
+                                    data-cat="{{ cat }}" onclick="setCatFilter(this)">
+                                <span class="text-truncate d-inline-block" style="max-width:130px;">{{ cat }}</span>
+                                <span class="badge bg-secondary bg-opacity-30 ms-auto float-end">{{ cat_count }}</span>
+                            </button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── RIGHT: Role Cards ── -->
+            <div class="col-lg-9">
+
+                <!-- Sort + result count bar -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <p class="text-secondary small mb-0">
+                        Showing <span id="visible-count" class="text-white fw-semibold">{{ role_matches | length }}</span> roles
+                    </p>
+                    <select class="form-select form-glass border-secondary text-secondary"
+                            style="width:auto; font-size:0.82rem; padding:5px 10px;"
+                            onchange="applyFilters();" id="sort-select">
+                        <option value="match">Sort: Best Match</option>
+                        <option value="az">Sort: A → Z</option>
+                        <option value="za">Sort: Z → A</option>
+                    </select>
+                </div>
+
+                <div class="row g-3" id="roles-grid">
+                    {% for role in role_matches %}
+                        <div class="col-sm-6 col-xl-4 role-card"
+                             data-title="{{ role.title | lower }}"
+                             data-cat="{{ role.category }}"
+                             data-match="{{ role.match_percentage }}"
+                             data-is-related="{{ 'true' if role.is_related else 'false' }}"
+                             data-level="{{ 'strong' if role.match_percentage >= 75 else ('partial' if role.match_percentage >= 45 else 'low') }}">
+
+                            <!-- Card -->
+                            <div class="glass-card border-secondary job-role-card"
+                                 onclick="toggleDetail('{{ role.id }}')"
+                                 style="cursor:pointer; user-select:none; padding:1.1rem;">
+
+                                <!-- Icon + Title -->
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div class="flex-shrink-0 rounded-3 d-flex align-items-center justify-content-center
+                                                bg-{{ role.color }} bg-opacity-10 text-{{ role.color }}"
+                                         style="width:42px; height:42px; min-width:42px;">
+                                        <i class="fa-solid {{ role.icon }}"></i>
+                                    </div>
+                                    <div style="min-width:0;">
+                                        <h6 class="mb-0 text-white font-heading text-truncate">{{ role.title }}</h6>
+                                        <span class="text-secondary" style="font-size:0.72rem;">{{ role.category }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- % + count row -->
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="text-secondary" style="font-size:0.78rem;">Requirements met</span>
+                                    <span class="fw-bold font-heading
+                                        {% if role.match_percentage >= 75 %}text-success
+                                        {% elif role.match_percentage >= 45 %}text-warning
+                                        {% else %}text-danger{% endif %}"
+                                          style="font-size:1rem;">
+                                        {{ role.match_percentage | int }}%
+                                        <span class="text-secondary fw-normal" style="font-size:0.72rem;">
+                                            ({{ role.matched_skills | length }}/{{ role.required_skills | length }})
+                                        </span>
+                                    </span>
+                                </div>
+
+                                <!-- Progress bar -->
+                                <div class="progress progress-custom mb-2">
+                                    <div class="progress-bar {{ role.progress_color }}"
+                                         style="width:{{ role.match_percentage }}%;"
+                                         role="progressbar"
+                                         aria-valuenow="{{ role.match_percentage }}"
+                                         aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+
+                                <!-- Label badge -->
+                                <div class="mb-3">
+                                    <span class="badge"
+                                          style="font-size:0.7rem; padding:3px 8px;
+                                          {% if role.match_percentage >= 75 %}
+                                              background:rgba(16,185,129,0.12); color:#10b981; border:1px solid rgba(16,185,129,0.3);
+                                          {% elif role.match_percentage >= 45 %}
+                                              background:rgba(245,158,11,0.12); color:#f59e0b; border:1px solid rgba(245,158,11,0.3);
+                                          {% else %}
+                                              background:rgba(244,63,94,0.12); color:#f43f5e; border:1px solid rgba(244,63,94,0.3);
+                                          {% endif %}">
+                                        {% if role.match_percentage >= 75 %}<i class="fa-solid fa-circle-check me-1"></i>Strong Match
+                                        {% elif role.match_percentage >= 45 %}<i class="fa-solid fa-circle-half-stroke me-1"></i>Partial Match
+                                        {% else %}<i class="fa-solid fa-triangle-exclamation me-1"></i>Needs Work{% endif %}
+                                    </span>
+                                </div>
+
+                                <!-- Description -->
+                                <p class="text-secondary mb-3" style="font-size:0.8rem; line-height:1.5;">{{ role.description }}</p>
+
+                                <!-- Matched skill pills (up to 4) -->
+                                {% if role.matched_skills %}
+                                    <div class="d-flex flex-wrap gap-1 mb-3">
+                                        {% for sk in role.matched_skills[:4] %}
+                                            <span class="badge" style="font-size:0.68rem; padding:3px 7px;
+                                                         background:rgba(16,185,129,0.1); color:#10b981;
+                                                         border:1px solid rgba(16,185,129,0.25);">
+                                                <i class="fa-solid fa-check me-1" style="font-size:0.55rem;"></i>{{ sk }}
+                                            </span>
+                                        {% endfor %}
+                                        {% if role.matched_skills | length > 4 %}
+                                            <span class="badge" style="font-size:0.68rem; padding:3px 7px;
+                                                         background:rgba(148,163,184,0.1); color:#94a3b8;
+                                                         border:1px solid rgba(148,163,184,0.2);">
+                                                +{{ role.matched_skills | length - 4 }} more
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+
+                                <!-- Expand hint -->
+                                <div class="d-flex align-items-center gap-1 text-secondary" style="font-size:0.73rem;">
+                                    <i class="fa-solid fa-chevron-down toggle-icon-{{ role.id }}"
+                                       style="font-size:0.6rem; transition:transform 0.2s;"></i>
+                                    <span>Full breakdown</span>
+                                </div>
+                            </div>
+
+                            <!-- Expanded detail -->
+                            <div id="detail-{{ role.id }}" style="display:none;" class="mt-2">
+                                <div class="glass-card p-3 border-secondary">
+                                    
+                                    <!-- ESCO Essential Skills Section -->
+                                    <div class="mb-3">
+                                        <p class="text-info mb-2 fw-semibold d-flex justify-content-between align-items-center"
+                                           style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;">
+                                            <span><i class="fa-solid fa-star me-1 text-warning"></i>Essential Skills (Mandatory)</span>
+                                            <span class="badge bg-secondary bg-opacity-35 text-white" style="font-size: 0.65rem;">
+                                                {{ role.matched_essential | length }}/{{ role.essential_skills | length }} met
+                                            </span>
+                                        </p>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            {% for sk in role.essential_skills %}
+                                                {% if sk in role.matched_essential %}
+                                                    <span class="badge" style="font-size:0.72rem; padding:4px 9px;
+                                                                 background:rgba(16,185,129,0.12); color:#10b981;
+                                                                 border:1px solid rgba(16,185,129,0.3);"><i class="fa-solid fa-check me-1"></i>{{ sk }}</span>
+                                                {% else %}
+                                                    <span class="badge" style="font-size:0.72rem; padding:4px 9px;
+                                                                 background:rgba(244,63,94,0.12); color:#f43f5e;
+                                                                 border:1px solid rgba(244,63,94,0.3);"><i class="fa-solid fa-xmark me-1"></i>{{ sk }}</span>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+
+                                    <!-- ESCO Optional Skills Section -->
+                                    {% if role.optional_skills %}
+                                        <div class="pt-3 border-top border-secondary border-opacity-30 mt-3">
+                                            <p class="text-secondary mb-2 fw-semibold d-flex justify-content-between align-items-center"
+                                               style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;">
+                                                <span><i class="fa-regular fa-star me-1 text-info"></i>Optional Skills (Supplementary)</span>
+                                                <span class="badge bg-secondary bg-opacity-35 text-white" style="font-size: 0.65rem;">
+                                                    {{ role.matched_optional | length }}/{{ role.optional_skills | length }} met
+                                                </span>
+                                            </p>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                {% for sk in role.optional_skills %}
+                                                    {% if sk in role.matched_optional %}
+                                                        <span class="badge" style="font-size:0.72rem; padding:4px 9px;
+                                                                     background:rgba(16,185,129,0.12); color:#10b981;
+                                                                     border:1px solid rgba(16,185,129,0.3);"><i class="fa-solid fa-check me-1"></i>{{ sk }}</span>
+                                                    {% else %}
+                                                        <span class="badge" style="font-size:0.72rem; padding:4px 9px;
+                                                                     background:rgba(255,255,255,0.06); color:#94a3b8;
+                                                                     border:1px solid rgba(255,255,255,0.15);"><i class="fa-solid fa-minus me-1"></i>{{ sk }}</span>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+
+                                </div>
+                            </div>
+
+                        </div><!-- /.role-card col -->
+                    {% endfor %}
+                </div><!-- /#roles-grid -->
+
+                <div id="no-results-msg" class="text-center py-5 d-none">
+                    <i class="fa-regular fa-folder-open fs-1 text-secondary mb-3 d-block"></i>
+                    <p class="text-secondary">No roles match the selected filters. Try adjusting your search.</p>
+                </div>
+
+            </div><!-- /.col-lg-9 -->
+        </div><!-- /.row -->
+
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let activeMatch = 'all';
+let activeCat   = 'all';
+
+function setMatchFilter(btn) {
+    document.querySelectorAll('.filter-match-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeMatch = btn.dataset.match;
+    applyFilters();
+}
+
+function setCatFilter(btn) {
+    document.querySelectorAll('.filter-cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeCat = btn.dataset.cat;
+    applyFilters();
+}
+
+function applyFilters() {
+    const search  = (document.getElementById('role-search').value || '').toLowerCase().trim();
+    const sort    = document.getElementById('sort-select').value;
+    const cards   = Array.from(document.querySelectorAll('.role-card'));
+    let visible   = 0;
+
+    cards.forEach(card => {
+        const title     = card.dataset.title || '';
+        const cat       = card.dataset.cat   || '';
+        const pct       = parseFloat(card.dataset.match) || 0;
+        const isRelated = card.dataset.isRelated === 'true';
+        const level     = card.dataset.level;
+
+        let show = true;
+
+        // Search filter
+        if (search && !title.includes(search)) show = false;
+
+        // Category filter
+        if (activeCat !== 'all' && cat !== activeCat) show = false;
+
+        // Match level filter
+        if (activeMatch === 'strong'  && level !== 'strong')              show = false;
+        if (activeMatch === 'partial' && level !== 'partial')             show = false;
+        if (activeMatch === 'related' && !isRelated)                      show = false;
+
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+
+    document.getElementById('visible-count').textContent = visible;
+    document.getElementById('no-results-msg').classList.toggle('d-none', visible > 0);
+
+    // Sort visible cards
+    const grid = document.getElementById('roles-grid');
+    const visibleCards = cards.filter(c => c.style.display !== 'none');
+    visibleCards.sort((a, b) => {
+        if (sort === 'match') return parseFloat(b.dataset.match) - parseFloat(a.dataset.match);
+        if (sort === 'az')    return a.dataset.title.localeCompare(b.dataset.title);
+        if (sort === 'za')    return b.dataset.title.localeCompare(a.dataset.title);
+        return 0;
+    });
+    visibleCards.forEach(c => grid.appendChild(c));
+}
+
+function toggleDetail(roleId) {
+    const detail = document.getElementById('detail-' + roleId);
+    const icon   = document.querySelector('.toggle-icon-' + roleId);
+    const isOpen = detail.style.display !== 'none';
+    detail.style.display = isOpen ? 'none' : 'block';
+    if (icon) icon.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+</script>
+
+<style>
+.job-role-card { display: flex; flex-direction: column; }
+
+/* Scrollable sticky filter panel */
+.filter-panel-sticky {
+    position: sticky;
+    top: 80px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+/* Custom sleek scrollbar for filter panel */
+.filter-panel-sticky::-webkit-scrollbar {
+    width: 4px;
+}
+.filter-panel-sticky::-webkit-scrollbar-track {
+    background: transparent;
+}
+.filter-panel-sticky::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+}
+.filter-panel-sticky::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* Filter sidebar buttons */
+.filter-match-btn,
+.filter-cat-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    border-radius: 8px;
+    font-size: 0.82rem;
+    padding: 6px 10px;
+    transition: all 0.15s ease;
+    text-align: left;
+}
+.filter-match-btn:hover,
+.filter-cat-btn:hover {
+    background: rgba(255,255,255,0.04);
+    color: var(--text-primary);
+    border-color: var(--border-glass);
+}
+.filter-match-btn.active,
+.filter-cat-btn.active {
+    background: rgba(99,102,241,0.12);
+    color: #a5b4fc;
+    border-color: rgba(99,102,241,0.35);
+}
+</style>
+{% endblock %}

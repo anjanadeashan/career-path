@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - CareerAI Smart Matching{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Hero Section -->
+    <div class="row align-items-center justify-content-between g-5 py-5">
+        <div class="col-lg-6 text-center text-lg-start">
+            <h1 class="display-3 fw-bold mb-4 font-heading" style="line-height: 1.1;">
+                Elevate Your Career with <span class="gradient-text">AI Guidance</span>
+            </h1>
+            <p class="lead text-secondary mb-4 fs-5" style="line-height: 1.6;">
+                Upload your resume, extract key competencies using advanced Natural Language Processing, discover machine-learned job fits, and get feedback from our Claude-powered AI Career Advisor.
+            </p>
+            <div class="d-flex justify-content-center justify-content-lg-start gap-3 mt-2">
+                {% if session_user_id %}
+                    {% if session_user_role == 'admin' %}
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn gradient-btn btn-lg">Go to Dashboard</a>
+                    {% else %}
+                        <a href="{{ url_for('resume.profile') }}" class="btn gradient-btn btn-lg">My Career Profile</a>
+                        <a href="{{ url_for('job.jobs') }}" class="btn btn-outline-light btn-lg px-4 py-2 border-secondary">View Job Matches</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('auth.register') }}" class="btn gradient-btn btn-lg">Get Started Free</a>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg px-4 py-2 border-secondary">Sign In</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-5 position-relative">
+            <div class="position-absolute top-50 start-50 translate-middle" style="width: 300px; height: 300px; background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, rgba(0,0,0,0) 70%); filter: blur(30px); z-index: -1;"></div>
+            <div class="glass-card p-5 text-center border-secondary">
+                <i class="fa-solid fa-robot text-primary mb-4" style="font-size: 4rem; text-shadow: 0 0 20px rgba(99, 102, 241, 0.4);"></i>
+                <h3 class="mb-3">AI Agent Active</h3>
+                <p class="text-secondary small mb-4">Our model analyzes semantic skill networks, ranks matching jobs, and suggests tailored certification pathways.</p>
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <span class="badge bg-dark border border-secondary text-primary px-3 py-2">spaCy NLP</span>
+                    <span class="badge bg-dark border border-secondary text-success px-3 py-2">Claude API</span>
+                    <span class="badge bg-dark border border-secondary text-info px-3 py-2">Scikit-learn</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Features Grid -->
+    <div class="py-5 mt-5">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3 font-heading">Complete Skill & Match Lifecycle</h2>
+            <p class="text-secondary mx-auto" style="max-width: 600px;">Experience a fully integrated workspace mapping your talents directly to industrial demand.</p>
+        </div>
+        
+        <div class="row g-4 justify-content-center">
+            <!-- Feature 1 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="glass-card h-100 p-4 border-secondary text-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-4" style="width: 60px; height: 60px;">
+                        <i class="fa-solid fa-file-pdf text-primary fs-3"></i>
+                    </div>
+                    <h4>1. CV Parser</h4>
+                    <p class="text-secondary small">Automatically parse and extract text, work records, and education from DOCX and PDF resumes.</p>
+                </div>
+            </div>
+            
+            <!-- Feature 2 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="glass-card h-100 p-4 border-secondary text-center">
+                    <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-4" style="width: 60px; height: 60px;">
+                        <i class="fa-solid fa-brain text-success fs-3"></i>
+                    </div>
+                    <h4>2. Skill Extractor</h4>
+                    <p class="text-secondary small">Isolate technical coding abilities and critical soft skills with tokenized NLP models.</p>
+                </div>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="glass-card h-100 p-4 border-secondary text-center">
+                    <div class="rounded-circle bg-info bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-4" style="width: 60px; height: 60px;">
+                        <i class="fa-solid fa-chart-line text-info fs-3"></i>
+                    </div>
+                    <h4>3. Match Engine</h4>
+                    <p class="text-secondary small">Compute cosine similarities between qualifications and job requirements using TF-IDF.</p>
+                </div>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="glass-card h-100 p-4 border-secondary text-center">
+                    <div class="rounded-circle bg-danger bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-4" style="width: 60px; height: 60px;">
+                        <i class="fa-solid fa-wand-magic-sparkles text-danger fs-3"></i>
+                    </div>
+                    <h4>4. AI Advisory</h4>
+                    <p class="text-secondary small">Leverage Claude LLM to construct personalized certificates lists and resume adjustments feedback.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

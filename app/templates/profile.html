@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - CareerAI{% endblock %}
+
+{% block content %}
+<div class="container my-4" id="skills-section-container">
+    <div class="row g-4">
+        
+        <!-- Left Side: CV Upload & Structured Details -->
+        <div class="col-lg-5">
+            <!-- CV Upload Card -->
+            <div class="glass-card p-4 border-secondary mb-4">
+                <h3 class="mb-3 font-heading"><i class="fa-solid fa-cloud-arrow-up text-primary me-2"></i>Upload CV</h3>
+                <p class="text-secondary small">Upload your latest resume (PDF or DOCX format) to extract skills and analyze matching roles.</p>
+                
+                <form id="upload-resume-form" action="{{ url_for('resume.upload_resume') }}" method="POST" enctype="multipart/form-data" class="mt-4">
+                    <div class="mb-3">
+                        <input class="form-control form-glass" type="file" id="resume" name="resume" accept=".pdf,.docx,.doc" required>
+                    </div>
+                    <button type="submit" id="upload-btn" class="btn gradient-btn w-100 py-2.5 d-flex align-items-center justify-content-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Extract & Match CV
+                    </button>
+                    <!-- Spinner shown during processing -->
+                    <div id="upload-spinner" class="text-center mt-3 d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Parsing...</span>
+                        </div>
+                        <p class="text-primary small mt-1 mb-0">Running NLP parsing and ranking recommendations...</p>
+                    </div>
+                </form>
+
+                {% if resume %}
+                    {% set file_url = resume.file_url or (resume.extracted_data.get('file_url') if resume.extracted_data else None) %}
+                    <div class="mt-4 pt-3 border-top border-secondary">
+                        <p class="mb-1 text-secondary small">Active Resume:</p>
+                        <div class="d-flex align-items-center justify-content-between gap-2 text-white font-monospace small">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-regular fa-file-lines text-info fs-5"></i>
+                                <div>
+                                    <strong class="text-truncate d-inline-block" style="max-width: 150px;">{{ resume.file_name }}</strong>
+                                    <span class="text-secondary d-block" style="font-size: 0.75rem;">Uploaded {{ resume.created_at[:16] }}</span>
+                                </div>
+                            </div>
+                            {% if file_url %}
+                                <a href="{{ file_url }}" target="_blank" class="btn btn-sm btn-outline-info d-flex align-items-center gap-1.5 py-1 px-2.5 rounded-pill" style="font-size: 0.75rem;">
+                                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>View CV
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Parsed Resume Sections Details -->
+            {% if resume %}
+                <div class="glass-card p-4 border-secondary">
+                    <h3 class="mb-4 font-heading"><i class="fa-solid fa-receipt text-success me-2"></i>Extracted Layout</h3>
+                    
+                    <!-- Accordion for parsed sections -->
+                    <div class="accordion accordion-flush" id="parsedDataAccordion">
+                        <div class="accordion-item bg-transparent border-bottom border-secondary">
+                            <h2 class="accordion-header" id="flush-headingOne">
+                                <button class="accordion-button collapsed bg-transparent text-white border-0 shadow-none px-0 py-3" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                                    <i class="fa-solid fa-graduation-cap text-info me-2"></i> Education List
+                                </button>
+                            </h2>
+                            <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#parsedDataAccordion">
+                                <div class="accordion-body px-0 text-secondary small">
+                                    {% if resume.extracted_data and resume.extracted_data.get('education') %}
+                                        <ul class="ps-3 mb-0">
+                                            {% for item in resume.extracted_data.get('education') %}
+                                                <li class="mb-2">{{ item }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        No education records detected automatically.
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item bg-transparent border-bottom border-secondary">
+                            <h2 class="accordion-header" id="flush-headingTwo">
+                                <button class="accordion-button collapsed bg-transparent text-white border-0 shadow-none px-0 py-3" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+                                    <i class="fa-solid fa-briefcase text-success me-2"></i> Experience History
+                                </button>
+                            </h2>
+                            <div id="flush-collapseTwo" class="accordion-collapse collapse" aria-labelledby="flush-headingTwo" data-bs-parent="#parsedDataAccordion">
+                                <div class="accordion-body px-0 text-secondary small">
+                                    {% if resume.extracted_data and resume.extracted_data.get('experience') %}
+                                        <ul class="ps-3 mb-0">
+                                            {% for item in resume.extracted_data.get('experience') %}
+                                                <li class="mb-2">{{ item }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        No work experience records detected.
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item bg-transparent">
+                            <h2 class="accordion-header" id="flush-headingThree">
+                                <button class="accordion-button collapsed bg-transparent text-white border-0 shadow-none px-0 py-3" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+                                    <i class="fa-solid fa-award text-warning me-2"></i> Certifications & Training
+                                </button>
+                            </h2>
+                            <div id="flush-collapseThree" class="accordion-collapse collapse" aria-labelledby="flush-headingThree" data-bs-parent="#parsedDataAccordion">
+                                <div class="accordion-body px-0 text-secondary small">
+                                    {% if resume.extracted_data and resume.extracted_data.get('certifications') %}
+                                        <ul class="ps-3 mb-0">
+                                            {% for item in resume.extracted_data.get('certifications') %}
+                                                <li class="mb-2">{{ item }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        No certifications found in resume text.
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Side: Skills Management Panel -->
+        <div class="col-lg-7">
+            <div class="glass-card p-4 border-secondary h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0 font-heading"><i class="fa-solid fa-tags text-primary me-2"></i>My Skill Set</h3>
+                </div>
+
+                {% if not resume and not tech_skills and not soft_skills %}
+                    <div class="text-center py-5 text-secondary">
+                        <i class="fa-regular fa-folder-open fs-1 mb-3"></i>
+                        <p>No skills recorded. Upload a resume or add custom tags below to initialize your skill profile.</p>
+                    </div>
+                {% endif %}
+
+                <!-- Technical Skills -->
+                <div class="mb-4">
+                    <h5 class="text-secondary small text-uppercase fw-bold mb-3"><i class="fa-solid fa-code text-primary me-2"></i>Technical Skills</h5>
+                    <div id="tech-skills-container" class="d-flex flex-wrap gap-1 p-3 rounded bg-dark bg-opacity-40 min-vh-10 border border-secondary border-opacity-50">
+                        {% if tech_skills %}
+                            {% for skill in tech_skills %}
+                                <span class="skill-pill skill-pill-tech">
+                                    {{ skill.skill_name }}
+                                    <button type="button" class="btn-close btn-close-skill" data-skill-name="{{ skill.skill_name }}" aria-label="Close"></button>
+                                </span>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted small mb-0 w-100">No technical skills loaded yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Soft Skills -->
+                <div class="mb-5">
+                    <h5 class="text-secondary small text-uppercase fw-bold mb-3"><i class="fa-solid fa-comments text-success me-2"></i>Soft Skills</h5>
+                    <div id="soft-skills-container" class="d-flex flex-wrap gap-1 p-3 rounded bg-dark bg-opacity-40 min-vh-10 border border-secondary border-opacity-50">
+                        {% if soft_skills %}
+                            {% for skill in soft_skills %}
+                                <span class="skill-pill skill-pill-soft">
+                                    {{ skill.skill_name }}
+                                    <button type="button" class="btn-close btn-close-skill" data-skill-name="{{ skill.skill_name }}" aria-label="Close"></button>
+                                </span>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted small mb-0 w-100">No soft skills loaded yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Add custom skill Form -->
+                <div class="pt-4 border-top border-secondary">
+                    <h5 class="mb-3">Add Custom Skill</h5>
+                    <form id="add-skill-form" class="row g-2">
+                        <div class="col-md-7">
+                            <input type="text" class="form-control form-glass" id="skill-input" placeholder="e.g. Kubernetes, Public Speaking" required>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select form-glass" id="skill-type-select">
+                                <option value="technical" selected>Technical</option>
+                                <option value="soft">Soft Skill</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100 h-100"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+{% endblock %}
