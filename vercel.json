@@ -2,7 +2,7 @@
   "version": 2,
   "functions": {
     "wsgi.py": {
-      "runtime": "@vercel/python@5.32",
+      "runtime": "@vercel/python@5.32.0",
       "maxDuration": 60
     }
   },
