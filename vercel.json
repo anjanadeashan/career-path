@@ -15,6 +15,11 @@
       "dest": "wsgi.py"
     }
   ],
+  "functions": {
+    "wsgi.py": {
+      "maxDuration": 60
+    }
+  },
   "env": {
     "FLASK_ENV": "production",
     "NLTK_DATA": "/tmp/nltk_data"

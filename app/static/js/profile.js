@@ -2,16 +2,101 @@
 document.addEventListener('DOMContentLoaded', () => {
     const uploadForm = document.getElementById('upload-resume-form');
     const uploadBtn = document.getElementById('upload-btn');
-    const uploadSpinner = document.getElementById('upload-spinner');
-    
-    // 1. Show spinner on resume upload
+    const uploadProgress = document.getElementById('upload-progress');
+
+    // Step animation helpers
+    const STEPS = ['step-upload', 'step-parse', 'step-ai', 'step-recs'];
+    let stepTimer = null;
+
+    function setStep(stepId, state) {
+        const el = document.getElementById(stepId);
+        if (!el) return;
+        const icon = el.querySelector('.step-icon');
+        const label = el.querySelector('span:last-child');
+        if (state === 'active') {
+            icon.textContent = '●';
+            icon.className = 'step-icon text-primary';
+            label.className = 'text-white';
+        } else if (state === 'done') {
+            icon.textContent = '✓';
+            icon.className = 'step-icon text-success';
+            label.className = 'text-success';
+        } else {
+            icon.textContent = '○';
+            icon.className = 'step-icon text-secondary';
+            label.className = 'text-secondary';
+        }
+    }
+
+    function startStepAnimation() {
+        let current = 0;
+        setStep(STEPS[0], 'active');
+        stepTimer = setInterval(() => {
+            setStep(STEPS[current], 'done');
+            current++;
+            if (current < STEPS.length) {
+                setStep(STEPS[current], 'active');
+            } else {
+                clearInterval(stepTimer);
+            }
+        }, 5000);
+    }
+
+    function finishSteps(success) {
+        clearInterval(stepTimer);
+        STEPS.forEach(s => setStep(s, success ? 'done' : 'done'));
+    }
+
+    // 1. AJAX resume upload with step-by-step progress
     if (uploadForm && uploadBtn) {
-        uploadForm.addEventListener('submit', () => {
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('resume');
+            if (!fileInput.files.length) return;
+
+            // Show progress, hide button
             uploadBtn.disabled = true;
-            if (uploadSpinner) {
-                uploadSpinner.classList.remove('d-none');
+            uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Processing...';
+            if (uploadProgress) uploadProgress.classList.remove('d-none');
+            startStepAnimation();
+
+            const formData = new FormData(uploadForm);
+
+            try {
+                const response = await fetch(uploadForm.action, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData
+                });
+
+                const result = await response.json();
+                finishSteps(result.success);
+
+                if (result.success) {
+                    showToast(result.message, result.warning ? 'warning' : 'success');
+                    // Reload so the updated skills/resume section renders
+                    setTimeout(() => { window.location.reload(); }, 1500);
+                } else {
+                    showToast(result.error || 'Upload failed.', 'danger');
+                    resetUploadUI();
+                }
+            } catch (err) {
+                console.error('Upload error:', err);
+                finishSteps(false);
+                showToast('Upload failed — network error or server timeout. Please try again.', 'danger');
+                resetUploadUI();
             }
         });
+    }
+
+    function resetUploadUI() {
+        if (uploadBtn) {
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Extract & Match CV';
+        }
+        if (uploadProgress) uploadProgress.classList.add('d-none');
+        STEPS.forEach(s => setStep(s, 'idle'));
     }
 
     // 2. Set up event listeners for deleting existing skill pills

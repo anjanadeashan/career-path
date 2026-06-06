@@ -41,23 +41,27 @@ def profile():
 @login_required
 def upload_resume():
     """Upload and parse a resume file (PDF or DOCX)."""
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     user_id = session['user_id']
-    
+
     if 'resume' not in request.files:
+        if is_ajax:
+            return jsonify({"success": False, "error": "No file part provided."}), 400
         flash("No file part provided.", "danger")
         return redirect(url_for('resume.profile'))
-        
+
     file = request.files['resume']
     if file.filename == '':
+        if is_ajax:
+            return jsonify({"success": False, "error": "No file selected."}), 400
         flash("No file selected.", "danger")
         return redirect(url_for('resume.profile'))
-        
+
     try:
-        # Read file bytes for uploading to Supabase Storage
         file.seek(0)
         file_bytes = file.read()
-        file.seek(0) # reset position for parsing
-        
+        file.seek(0)
+
         # 1. Upload to Supabase Storage
         file_url = None
         try:
@@ -69,16 +73,14 @@ def upload_resume():
             )
         except Exception as storage_err:
             logger.error(f"Failed to upload file to Supabase Storage: {str(storage_err)}")
-            flash("Warning: CV file could not be saved in cloud storage, but we are still parsing its text.", "warning")
 
         # 2. Parse document text
         raw_text = parsing_service.extract_text(file, file.filename)
-        
+
         # 3. Extract skills and structured sections
         extracted_skills = []
         structured_data = {}
-        
-        # Check if Claude is available for high-quality parsing
+
         if claude_service.client:
             try:
                 logger.info(f"Using Claude AI parser for resume upload of user {user_id}")
@@ -88,32 +90,47 @@ def upload_resume():
                 logger.info(f"Successfully parsed resume using Claude for user {user_id}. Extracted {len(extracted_skills)} skills.")
             except Exception as claude_err:
                 logger.error(f"Claude resume parsing failed: {str(claude_err)}. Falling back to local NLP parsing.", exc_info=True)
-                extracted_skills = []  # reset to force fallback
-                
-        # Fallback to local NLP parsing if Claude is not configured or failed
+                extracted_skills = []
+
         if not extracted_skills:
             logger.info(f"Using local NLP parser for user {user_id}")
             extracted_skills = nlp_service.extract_skills(raw_text)
             structured_data = nlp_service.extract_structured_data(raw_text)
-            
+
         # 4. Save to database
         resume_repo.save_resume(user_id, file.filename, raw_text, structured_data, file_url)
         resume_repo.save_skills(user_id, extracted_skills)
-        
-        # 4. Trigger recommendations recalculation immediately
+
+        # 5. Trigger recommendations recalculation
         try:
             rec_service.generate_recommendations_for_user(user_id)
-            flash("Resume uploaded and parsed successfully! Recommendations updated.", "success")
+            message = "Resume uploaded and parsed successfully! Recommendations updated."
+            warning = False
         except Exception as rec_err:
             logger.warning(f"Resume saved but recommendations failed: {str(rec_err)}")
-            flash("Resume uploaded and skills extracted successfully! Recommendations could not be generated — check that jobs exist in the system.", "warning")
-        
+            message = "Resume uploaded and skills extracted! Recommendations could not be generated — check that jobs exist in the system."
+            warning = True
+
+        if is_ajax:
+            return jsonify({
+                "success": True,
+                "message": message,
+                "warning": warning,
+                "skills_count": len(extracted_skills)
+            })
+
+        flash(message, "warning" if warning else "success")
+
     except ValueError as val_err:
+        if is_ajax:
+            return jsonify({"success": False, "error": str(val_err)}), 422
         flash(str(val_err), "warning")
     except Exception as e:
         logger.error(f"Failed to process resume upload: {str(e)}", exc_info=True)
+        if is_ajax:
+            return jsonify({"success": False, "error": f"Upload failed: {str(e)}"}), 500
         flash(f"Upload failed: {str(e)}", "danger")
-        
+
     return redirect(url_for('resume.profile'))
 
 @resume_bp.route('/profile/skills/add', methods=['POST'])

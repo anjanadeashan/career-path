@@ -20,14 +20,34 @@
                     <button type="submit" id="upload-btn" class="btn gradient-btn w-100 py-2.5 d-flex align-items-center justify-content-center gap-2">
                         <i class="fa-solid fa-wand-magic-sparkles"></i> Extract & Match CV
                     </button>
-                    <!-- Spinner shown during processing -->
-                    <div id="upload-spinner" class="text-center mt-3 d-none">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Parsing...</span>
-                        </div>
-                        <p class="text-primary small mt-1 mb-0">Running NLP parsing and ranking recommendations...</p>
-                    </div>
                 </form>
+
+                <!-- Upload progress overlay -->
+                <div id="upload-progress" class="d-none mt-4 p-3 rounded" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></div>
+                        <span class="text-white fw-semibold small">Processing your CV...</span>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="upload-step d-flex align-items-center gap-2 small" id="step-upload">
+                            <span class="step-icon text-secondary">○</span>
+                            <span class="text-secondary">Uploading file to cloud storage</span>
+                        </div>
+                        <div class="upload-step d-flex align-items-center gap-2 small" id="step-parse">
+                            <span class="step-icon text-secondary">○</span>
+                            <span class="text-secondary">Extracting text from document</span>
+                        </div>
+                        <div class="upload-step d-flex align-items-center gap-2 small" id="step-ai">
+                            <span class="step-icon text-secondary">○</span>
+                            <span class="text-secondary">Analysing skills with AI</span>
+                        </div>
+                        <div class="upload-step d-flex align-items-center gap-2 small" id="step-recs">
+                            <span class="step-icon text-secondary">○</span>
+                            <span class="text-secondary">Updating job recommendations</span>
+                        </div>
+                    </div>
+                    <p class="text-secondary mt-2 mb-0" style="font-size: 0.72rem;">This can take up to 30 seconds — please wait.</p>
+                </div>
 
                 {% if resume %}
                     {% set file_url = resume.file_url or (resume.extracted_data.get('file_url') if resume.extracted_data else None) %}
