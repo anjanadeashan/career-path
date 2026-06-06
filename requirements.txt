@@ -4,7 +4,7 @@ anthropic==0.28.1
 spacy==3.7.4
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl
 nltk==3.8.1
-scikit-learn==1.4.2 --no-deps
+scikit-learn==1.4.2
 joblib>=1.2.0
 threadpoolctl>=2.0.0
 pypdf==4.2.0
