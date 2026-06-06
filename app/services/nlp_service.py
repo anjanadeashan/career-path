@@ -1,3 +1,4 @@
+import os
 import re
 import logging
 import nltk
@@ -53,6 +54,11 @@ class NlpService:
         except Exception:
             ssl._create_default_https_context = ssl._create_unverified_context
 
+        nltk_dir = '/tmp/nltk_data'
+        os.makedirs(nltk_dir, exist_ok=True)
+        if nltk_dir not in nltk.data.path:
+            nltk.data.path.insert(0, nltk_dir)
+
         for dataset in ['punkt', 'punkt_tab', 'stopwords']:
             path = (f'tokenizers/{dataset}' if dataset in ('punkt', 'punkt_tab') else f'corpora/{dataset}')
             try:
@@ -60,10 +66,10 @@ class NlpService:
             except LookupError:
                 logger.info(f"NLTK dataset '{dataset}' not found. Downloading...")
                 try:
-                    nltk.download(dataset, quiet=True)
+                    nltk.download(dataset, quiet=True, download_dir=nltk_dir)
                 except Exception:
                     ssl._create_default_https_context = ssl._create_unverified_context
-                    nltk.download(dataset, quiet=True)
+                    nltk.download(dataset, quiet=True, download_dir=nltk_dir)
 
     def _setup_matchers(self):
         """Create PhraseMatcher rules for skills matching."""
