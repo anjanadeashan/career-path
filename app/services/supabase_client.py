@@ -1,6 +1,6 @@
 import logging
 from supabase import create_client, Client
-from supabase.lib.client_options import ClientOptions
+from supabase.lib.client_options import SyncClientOptions
 from app.config import Config
 
 logger = logging.getLogger(__name__)
@@ -68,7 +68,7 @@ def get_supabase_auth_client() -> Client:
         raise ValueError("Supabase URL and anon Key are required for auth operations.")
 
     try:
-        client = create_client(url, key, options=ClientOptions(storage=FlaskSessionStorage()))
+        client = create_client(url, key, options=SyncClientOptions(storage=FlaskSessionStorage()))
         return client
     except Exception as e:
         logger.error(f"Failed to initialize Supabase auth client: {str(e)}")

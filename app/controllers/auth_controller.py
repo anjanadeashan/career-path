@@ -158,8 +158,9 @@ def login_google():
         return redirect(url_for('auth.login'))
 
     except Exception as e:
-        logger.error(f"Error initiating Google OAuth: {str(e)}")
-        flash("OAuth initiation failed.", "danger")
+        import traceback
+        logger.error(f"Error initiating Google OAuth: {str(e)}\n{traceback.format_exc()}")
+        flash(f"OAuth initiation failed: {str(e)}", "danger")
         return redirect(url_for('auth.login'))
 
 # 2. Callback route to handle Google's redirect containing authorization tokens
