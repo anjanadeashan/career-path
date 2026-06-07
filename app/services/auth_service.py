@@ -72,6 +72,33 @@ class AuthService:
                 return {"success": False, "error": "Please confirm your email address before signing in. Check your inbox for a confirmation link."}
             return {"success": False, "error": error_msg}
 
+    def login_with_token(self, access_token: str):
+        """Log in a user using a Supabase OAuth access token and retrieve their profile."""
+        try:
+            # Fetch user details from Supabase using the provided access token
+            response = self.db.auth.get_user(access_token)
+            
+            if response and response.user:
+                # Retrieve the full profile from the profiles table
+                profile = self.profile_repo.get_by_id(response.user.id)
+                role = profile.get('role', 'student') if profile else 'student'
+                
+                # Google auth might store full name in user_metadata
+                full_name = profile.get('full_name', '') if profile else response.user.user_metadata.get('full_name', '')
+                
+                return {
+                    "success": True,
+                    "user_id": response.user.id,
+                    "email": response.user.email,
+                    "full_name": full_name,
+                    "role": role,
+                    "access_token": access_token
+                }
+            return {"success": False, "error": "Invalid or expired token."}
+        except Exception as e:
+            logger.error(f"Error during OAuth login: {str(e)}")
+            return {"success": False, "error": str(e)}
+
     def logout(self):
         """Log out the current user session from Supabase."""
         try:
