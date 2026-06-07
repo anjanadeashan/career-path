@@ -133,16 +133,26 @@ def resend_verification():
             flash(result.get('error', "Failed to resend verification email. Please try again later."), "danger")
     return redirect(url_for('auth.login'))
 
+# Key under which we store the PKCE code verifier (gotrue writes it under this Flask session key)
+_GOTRUE_PKCE_KEY = '_sb_supabase.auth.token-code-verifier'
+_OUR_PKCE_KEY = '_oauth_pkce_verifier'
+
 # 1. Route to redirect the user to Google Login Page
 @auth_bp.route('/login/google')
 def login_google():
     """Redirect user to Google login interface via Supabase OAuth."""
     try:
+        # Clear any stale PKCE/session state from a previous failed attempt
+        session.pop(_GOTRUE_PKCE_KEY, None)
+        session.pop(_OUR_PKCE_KEY, None)
+
         app_url = os.environ.get('APP_URL', '').rstrip('/')
         if app_url:
             callback_url = f"{app_url}/auth/callback"
         else:
             callback_url = url_for('auth.google_callback', _external=True)
+
+        logger.info(f"Starting Google OAuth. callback_url={callback_url}")
         auth_client = get_supabase_auth_client()
 
         response = auth_client.auth.sign_in_with_oauth({
@@ -153,6 +163,14 @@ def login_google():
         })
 
         if response.url:
+            # Gotrue stored the PKCE verifier via FlaskSessionStorage — copy it to a
+            # simple key so google_callback can pass it explicitly to exchange_code_for_session.
+            code_verifier = session.get(_GOTRUE_PKCE_KEY)
+            if code_verifier:
+                session[_OUR_PKCE_KEY] = code_verifier
+                logger.info("PKCE code verifier saved to session.")
+            else:
+                logger.warning("PKCE code verifier not found in session after sign_in_with_oauth.")
             return redirect(response.url)
 
         flash("Failed to generate Google Login URL.", "danger")
@@ -185,10 +203,16 @@ def google_callback():
 
     try:
         auth_client = get_supabase_auth_client()
+        # Read and consume the PKCE verifier we saved during login_google
+        code_verifier = session.pop(_OUR_PKCE_KEY, None) or session.pop(_GOTRUE_PKCE_KEY, None)
+        logger.info(f"Exchanging code. code_verifier present: {bool(code_verifier)}")
+
+        exchange_params = {"auth_code": code}
+        if code_verifier:
+            exchange_params["code_verifier"] = code_verifier
+
         # Exchange the authorization code for a session
-        response = auth_client.auth.exchange_code_for_session({
-            "auth_code": code
-        })
+        response = auth_client.auth.exchange_code_for_session(exchange_params)
 
         if not response.session or not response.user:
             logger.error(f"exchange_code_for_session returned empty session/user. response={response}")
