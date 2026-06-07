@@ -349,3 +349,93 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: 0;
     font-size: 0.875rem;
 }
+
+/* Skills container minimum height */
+.skills-container-min {
+    min-height: 64px;
+}
+
+/* ===== RESPONSIVE MEDIA QUERIES ===== */
+
+/* Tablet and below (< 992px) */
+@media (max-width: 991.98px) {
+    .filter-panel-sticky {
+        position: static;
+        max-height: none;
+        overflow-y: visible;
+    }
+
+    .chat-container {
+        height: 400px;
+    }
+}
+
+/* Mobile (< 768px) */
+@media (max-width: 767.98px) {
+    main.py-5 {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+    }
+
+    .display-3 {
+        font-size: 2.2rem !important;
+    }
+
+    .display-4 {
+        font-size: 1.9rem !important;
+    }
+
+    .display-5 {
+        font-size: 1.6rem !important;
+    }
+
+    .chat-container {
+        height: 320px;
+    }
+
+    .chat-bubble {
+        max-width: 92%;
+    }
+
+    .navbar-brand-glow {
+        font-size: 1.2rem;
+    }
+
+    .glass-card {
+        border-radius: 12px;
+    }
+
+    .footer-custom {
+        padding: 20px 0;
+        text-align: center;
+    }
+}
+
+/* Small mobile (< 576px) */
+@media (max-width: 575.98px) {
+    .alert-container {
+        right: 10px;
+        left: 10px;
+        min-width: unset;
+        max-width: calc(100vw - 20px);
+    }
+
+    .display-3 {
+        font-size: 1.9rem !important;
+    }
+
+    .gradient-btn {
+        padding: 8px 18px;
+        font-size: 0.9rem;
+    }
+
+    .skill-pill {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+    }
+
+    .match-badge {
+        font-size: 1rem;
+        padding: 6px 12px;
+    }
+}

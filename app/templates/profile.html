@@ -7,7 +7,7 @@
     <div class="row g-4">
         
         <!-- Left Side: CV Upload & Structured Details -->
-        <div class="col-lg-5">
+        <div class="col-12 col-lg-5">
             <!-- CV Upload Card -->
             <div class="glass-card p-4 border-secondary mb-4">
                 <h3 class="mb-3 font-heading"><i class="fa-solid fa-cloud-arrow-up text-primary me-2"></i>Upload CV</h3>
@@ -57,7 +57,7 @@
                             <div class="d-flex align-items-center gap-2">
                                 <i class="fa-regular fa-file-lines text-info fs-5"></i>
                                 <div>
-                                    <strong class="text-truncate d-inline-block" style="max-width: 150px;">{{ resume.file_name }}</strong>
+                                    <strong class="text-truncate d-inline-block" style="max-width: min(150px, 40vw);">{{ resume.file_name }}</strong>
                                     <span class="text-secondary d-block" style="font-size: 0.75rem;">Uploaded {{ resume.created_at[:16] }}</span>
                                 </div>
                             </div>
@@ -146,7 +146,7 @@
         </div>
 
         <!-- Right Side: Skills Management Panel -->
-        <div class="col-lg-7">
+        <div class="col-12 col-lg-7">
             <div class="glass-card p-4 border-secondary h-100">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h3 class="mb-0 font-heading"><i class="fa-solid fa-tags text-primary me-2"></i>My Skill Set</h3>
@@ -162,7 +162,7 @@
                 <!-- Technical Skills -->
                 <div class="mb-4">
                     <h5 class="text-secondary small text-uppercase fw-bold mb-3"><i class="fa-solid fa-code text-primary me-2"></i>Technical Skills</h5>
-                    <div id="tech-skills-container" class="d-flex flex-wrap gap-1 p-3 rounded bg-dark bg-opacity-40 min-vh-10 border border-secondary border-opacity-50">
+                    <div id="tech-skills-container" class="d-flex flex-wrap gap-1 p-3 rounded bg-dark bg-opacity-40 skills-container-min border border-secondary border-opacity-50">
                         {% if tech_skills %}
                             {% for skill in tech_skills %}
                                 <span class="skill-pill skill-pill-tech">
@@ -179,7 +179,7 @@
                 <!-- Soft Skills -->
                 <div class="mb-5">
                     <h5 class="text-secondary small text-uppercase fw-bold mb-3"><i class="fa-solid fa-comments text-success me-2"></i>Soft Skills</h5>
-                    <div id="soft-skills-container" class="d-flex flex-wrap gap-1 p-3 rounded bg-dark bg-opacity-40 min-vh-10 border border-secondary border-opacity-50">
+                    <div id="soft-skills-container" class="d-flex flex-wrap gap-1 p-3 rounded bg-dark bg-opacity-40 skills-container-min border border-secondary border-opacity-50">
                         {% if soft_skills %}
                             {% for skill in soft_skills %}
                                 <span class="skill-pill skill-pill-soft">
@@ -197,16 +197,16 @@
                 <div class="pt-4 border-top border-secondary">
                     <h5 class="mb-3">Add Custom Skill</h5>
                     <form id="add-skill-form" class="row g-2">
-                        <div class="col-md-7">
+                        <div class="col-12 col-md-7">
                             <input type="text" class="form-control form-glass" id="skill-input" placeholder="e.g. Kubernetes, Public Speaking" required>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-7 col-md-3">
                             <select class="form-select form-glass" id="skill-type-select">
                                 <option value="technical" selected>Technical</option>
                                 <option value="soft">Soft Skill</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-5 col-md-2">
                             <button type="submit" class="btn btn-primary w-100 h-100"><i class="fa-solid fa-plus"></i></button>
                         </div>
                     </form>

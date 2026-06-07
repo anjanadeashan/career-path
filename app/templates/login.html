@@ -4,8 +4,8 @@
 
 {% block content %}
 <div class="container my-5">
-    <div class="row justify-content-center py-5">
-        <div class="col-md-6 col-lg-5">
+    <div class="row justify-content-center py-3 py-md-5">
+        <div class="col-11 col-sm-9 col-md-6 col-lg-5">
             {% if session.get('awaiting_verification') %}
                 <div class="glass-card p-4 border-warning mb-4 text-white">
                     <div class="d-flex align-items-start gap-3">
@@ -33,7 +33,7 @@
                 </div>
             {% endif %}
             
-            <div class="glass-card p-5 border-secondary">
+            <div class="glass-card p-4 p-md-5 border-secondary">
                 <div class="text-center mb-4">
                     <h2 class="fw-bold font-heading">Welcome Back</h2>
                     <p class="text-secondary small">Access your career advisor dashboard</p>
