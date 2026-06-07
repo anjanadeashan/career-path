@@ -1,4 +1,6 @@
 import logging
+import os
+import traceback
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from app.services.auth_service import AuthService
 from app.services.supabase_client import get_supabase_auth_client
@@ -136,7 +138,6 @@ def resend_verification():
 def login_google():
     """Redirect user to Google login interface via Supabase OAuth."""
     try:
-        import os
         app_url = os.environ.get('APP_URL', '').rstrip('/')
         if app_url:
             callback_url = f"{app_url}/auth/callback"
@@ -158,7 +159,6 @@ def login_google():
         return redirect(url_for('auth.login'))
 
     except Exception as e:
-        import traceback
         logger.error(f"Error initiating Google OAuth: {str(e)}\n{traceback.format_exc()}")
         flash(f"OAuth initiation failed: {str(e)}", "danger")
         return redirect(url_for('auth.login'))
