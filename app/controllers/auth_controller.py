@@ -212,24 +212,3 @@ def google_callback():
             
     # Fallback if no code or error
     return redirect(url_for('auth.login'))
-
-@auth_bp.route('/auth/token_login', methods=['POST'])
-def token_login():
-    """Handle implicit grant tokens sent from frontend."""
-    data = request.get_json()
-    access_token = data.get('access_token')
-    
-    if not access_token:
-        return jsonify({"success": False, "error": "No access token provided"}), 400
-        
-    result = auth_service.login_with_token(access_token)
-    
-    if result.get('success'):
-        session.pop('awaiting_verification', None)
-        session['user_id'] = result['user_id']
-        session['user_email'] = result['email']
-        session['user_name'] = result['full_name']
-        session['user_role'] = result['role']
-        session.permanent = True
-        return jsonify({"success": True, "redirect": url_for('resume.profile')})
-    return jsonify({"success": False, "error": result.get('error', 'Token login failed')}), 401
