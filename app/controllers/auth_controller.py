@@ -167,48 +167,64 @@ def login_google():
 @auth_bp.route('/auth/callback')
 def google_callback():
     """Handle the OAuth callback redirect from Supabase and sign the user in."""
-    code = request.args.get('code')
+    # Check for OAuth error response from Supabase/Google
+    error = request.args.get('error')
+    error_description = request.args.get('error_description', '')
+    if error:
+        logger.error(f"OAuth callback received error: {error} — {error_description}")
+        flash(f"Google login failed: {error_description or error}", "danger")
+        return redirect(url_for('auth.login'))
 
-    if code:
-        try:
-            auth_client = get_supabase_auth_client()
-            # Exchange the authorization code for a session
-            response = auth_client.auth.exchange_code_for_session({
-                "auth_code": code
-            })
-            
-            if response.session and response.user:
-                # Retrieve role and set flask session
-                profile = auth_service.profile_repo.get_by_id(response.user.id)
-                
-                # Self-healing: if profile record doesn't exist, create it dynamically
-                if not profile:
-                    auth_service.profile_repo.upsert_profile(
-                        user_id=response.user.id,
-                        email=response.user.email,
-                        full_name=response.user.user_metadata.get('full_name', 'Google User') if response.user.user_metadata else 'Google User',
-                        role='student'
-                    )
-                    role = 'student'
-                    full_name = response.user.user_metadata.get('full_name', 'Google User') if response.user.user_metadata else 'Google User'
-                else:
-                    role = profile.get('role', 'student')
-                    full_name = profile.get('full_name', 'Google User')
-                
-                # Populate Flask Session
-                session.pop('awaiting_verification', None)
-                session['user_id'] = response.user.id
-                session['user_email'] = response.user.email
-                session['user_name'] = full_name
-                session['user_role'] = role
-                session.permanent = True
-                
-                flash(f"Successfully logged in with Google! Welcome, {full_name}!", "success")
-                return redirect(url_for('resume.profile'))
-                
-        except Exception as e:
-            logger.error(f"OAuth code exchange failed: {str(e)}")
-            flash("Failed to complete Google authentication.", "danger")
-            
-    # Fallback if no code or error
-    return redirect(url_for('auth.login'))
+    code = request.args.get('code')
+    logger.info(f"OAuth callback hit. code present: {bool(code)}")
+
+    if not code:
+        logger.warning("OAuth callback called with no code and no error parameter.")
+        flash("Google login failed: no authorization code received.", "danger")
+        return redirect(url_for('auth.login'))
+
+    try:
+        auth_client = get_supabase_auth_client()
+        # Exchange the authorization code for a session
+        response = auth_client.auth.exchange_code_for_session({
+            "auth_code": code
+        })
+
+        if not response.session or not response.user:
+            logger.error(f"exchange_code_for_session returned empty session/user. response={response}")
+            flash("Google login failed: could not establish a session. Please try again.", "danger")
+            return redirect(url_for('auth.login'))
+
+        # Retrieve role and set flask session
+        profile = auth_service.profile_repo.get_by_id(response.user.id)
+
+        # Self-healing: if profile record doesn't exist, create it dynamically
+        if not profile:
+            auth_service.profile_repo.upsert_profile(
+                user_id=response.user.id,
+                email=response.user.email,
+                full_name=response.user.user_metadata.get('full_name', 'Google User') if response.user.user_metadata else 'Google User',
+                role='student'
+            )
+            role = 'student'
+            full_name = response.user.user_metadata.get('full_name', 'Google User') if response.user.user_metadata else 'Google User'
+        else:
+            role = profile.get('role', 'student')
+            full_name = profile.get('full_name', 'Google User')
+
+        # Populate Flask Session
+        session.pop('awaiting_verification', None)
+        session['user_id'] = response.user.id
+        session['user_email'] = response.user.email
+        session['user_name'] = full_name
+        session['user_role'] = role
+        session.permanent = True
+
+        logger.info(f"Google OAuth login successful for user {response.user.id}")
+        flash(f"Successfully logged in with Google! Welcome, {full_name}!", "success")
+        return redirect(url_for('resume.profile'))
+
+    except Exception as e:
+        logger.error(f"OAuth code exchange failed: {str(e)}\n{traceback.format_exc()}")
+        flash("Google login failed: could not complete authentication. Please try again.", "danger")
+        return redirect(url_for('auth.login'))
