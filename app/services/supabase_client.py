@@ -5,6 +5,7 @@ from app.config import Config
 logger = logging.getLogger(__name__)
 
 supabase_client: Client = None
+supabase_auth_client: Client = None
 
 def get_supabase_client() -> Client:
     """
@@ -34,4 +35,29 @@ def get_supabase_client() -> Client:
         return supabase_client
     except Exception as e:
         logger.error(f"Failed to initialize Supabase client: {str(e)}")
+        raise e
+
+def get_supabase_auth_client() -> Client:
+    """
+    Initializes and returns a Supabase client using the anon key.
+    OAuth flows (sign_in_with_oauth, exchange_code_for_session) must use
+    the anon key — the service role key bypasses user session creation.
+    """
+    global supabase_auth_client
+    if supabase_auth_client is not None:
+        return supabase_auth_client
+
+    url = Config.SUPABASE_URL
+    key = Config.SUPABASE_KEY  # Always use anon key for auth operations
+
+    if not url or not key:
+        logger.error("Supabase URL or anon Key is missing from Config!")
+        raise ValueError("Supabase URL and anon Key are required for auth operations.")
+
+    try:
+        supabase_auth_client = create_client(url, key)
+        logger.info("Supabase auth client initialized with anon key.")
+        return supabase_auth_client
+    except Exception as e:
+        logger.error(f"Failed to initialize Supabase auth client: {str(e)}")
         raise e

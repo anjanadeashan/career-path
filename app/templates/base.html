@@ -46,16 +46,39 @@
                                 <a class="nav-link nav-link-custom {% if request.endpoint == 'career.advisor' %}active{% endif %}" href="{{ url_for('career.advisor') }}">AI Career Advisor</a>
                             </li>
                         {% endif %}
+                        <!-- Mobile-only: flat user actions instead of dropdown -->
+                        <li class="nav-item d-lg-none mt-2 pt-2" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                            <span class="nav-link text-secondary small py-1 d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 26px; height: 26px; font-size: 0.75rem; font-weight: 600;">
+                                    {{ (session_user_name or session_user_email or 'U')[0].upper() }}
+                                </div>
+                                <span class="text-white">{{ session_user_name or session_user_email }}</span>
+                            </span>
+                        </li>
+                        <li class="nav-item d-lg-none">
+                            <a class="nav-link text-danger d-flex align-items-center gap-2" href="{{ url_for('auth.logout') }}">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i>Sign Out
+                            </a>
+                        </li>
+                    {% else %}
+                        <!-- Mobile-only: auth links -->
+                        <li class="nav-item d-lg-none mt-2 pt-2" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                            <a href="{{ url_for('auth.login') }}" class="nav-link nav-link-custom">Sign In</a>
+                        </li>
+                        <li class="nav-item d-lg-none">
+                            <a href="{{ url_for('auth.register') }}" class="nav-link nav-link-custom">Register</a>
+                        </li>
                     {% endif %}
                 </ul>
-                <div class="d-flex align-items-center">
+                <!-- Desktop-only: user dropdown or auth buttons -->
+                <div class="d-none d-lg-flex align-items-center">
                     {% if session_user_id %}
                         <div class="dropdown">
                             <button class="btn btn-outline-light dropdown-toggle border-0 d-flex align-items-center gap-2" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-weight: 600;">
                                     {{ (session_user_name or session_user_email or 'U')[0].upper() }}
                                 </div>
-                                <span class="d-none d-md-inline">{{ session_user_name or session_user_email }}</span>
+                                <span>{{ session_user_name or session_user_email }}</span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark border-secondary bg-dark" aria-labelledby="userDropdown">
                                 {% if session_user_role != 'admin' %}

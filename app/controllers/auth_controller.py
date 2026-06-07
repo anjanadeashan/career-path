@@ -1,6 +1,7 @@
 import logging
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from app.services.auth_service import AuthService
+from app.services.supabase_client import get_supabase_auth_client
 
 logger = logging.getLogger(__name__)
 auth_bp = Blueprint('auth', __name__)
@@ -135,23 +136,22 @@ def resend_verification():
 def login_google():
     """Redirect user to Google login interface via Supabase OAuth."""
     try:
-        # Generate OAuth URL redirection
-        # The redirect_to query parameter points to our Flask server callback
         callback_url = url_for('auth.google_callback', _external=True)
-        
-        response = auth_service.db.auth.sign_in_with_oauth({
+        auth_client = get_supabase_auth_client()
+
+        response = auth_client.auth.sign_in_with_oauth({
             "provider": "google",
             "options": {
                 "redirect_to": callback_url
             }
         })
-        
+
         if response.url:
             return redirect(response.url)
-        
+
         flash("Failed to generate Google Login URL.", "danger")
         return redirect(url_for('auth.login'))
-        
+
     except Exception as e:
         logger.error(f"Error initiating Google OAuth: {str(e)}")
         flash("OAuth initiation failed.", "danger")
@@ -161,17 +161,13 @@ def login_google():
 @auth_bp.route('/auth/callback')
 def google_callback():
     """Handle the OAuth callback redirect from Supabase and sign the user in."""
-    # Supabase handles authentication verification. 
-    # Usually, Supabase returns tokens via query parameters (Authorization Code flow) 
-    # or fragment parameters (Implicit Grant flow).
-    #
-    # With Supabase Auth PKCE, the callback receives '?code=...'
     code = request.args.get('code')
-    
+
     if code:
         try:
+            auth_client = get_supabase_auth_client()
             # Exchange the authorization code for a session
-            response = auth_service.db.auth.exchange_code_for_session({
+            response = auth_client.auth.exchange_code_for_session({
                 "auth_code": code
             })
             
