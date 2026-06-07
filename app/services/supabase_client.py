@@ -1,11 +1,30 @@
 import logging
 from supabase import create_client, Client
+from supabase.lib.client_options import ClientOptions
 from app.config import Config
 
 logger = logging.getLogger(__name__)
 
 supabase_client: Client = None
-supabase_auth_client: Client = None
+
+
+class FlaskSessionStorage:
+    """
+    PKCE verifier storage backed by Flask session (cookie).
+    Survives across serverless requests — fixes PKCE code exchange on Vercel.
+    """
+    def get_item(self, key: str):
+        from flask import session
+        return session.get(f'_sb_{key}')
+
+    def set_item(self, key: str, value: str) -> None:
+        from flask import session
+        session[f'_sb_{key}'] = value
+
+    def remove_item(self, key: str) -> None:
+        from flask import session
+        session.pop(f'_sb_{key}', None)
+
 
 def get_supabase_client() -> Client:
     """
@@ -18,8 +37,6 @@ def get_supabase_client() -> Client:
         return supabase_client
 
     url = Config.SUPABASE_URL
-    # Prefer service role key (bypasses RLS for trusted server-side code),
-    # fall back to anon key if not configured.
     key = Config.SUPABASE_SERVICE_KEY or Config.SUPABASE_KEY
 
     if not url or not key:
@@ -37,27 +54,22 @@ def get_supabase_client() -> Client:
         logger.error(f"Failed to initialize Supabase client: {str(e)}")
         raise e
 
+
 def get_supabase_auth_client() -> Client:
     """
-    Initializes and returns a Supabase client using the anon key.
-    OAuth flows (sign_in_with_oauth, exchange_code_for_session) must use
-    the anon key — the service role key bypasses user session creation.
+    Returns a per-request Supabase auth client whose PKCE verifier is stored
+    in Flask session so it survives across serverless function invocations.
     """
-    global supabase_auth_client
-    if supabase_auth_client is not None:
-        return supabase_auth_client
-
     url = Config.SUPABASE_URL
-    key = Config.SUPABASE_KEY  # Always use anon key for auth operations
+    key = Config.SUPABASE_KEY
 
     if not url or not key:
         logger.error("Supabase URL or anon Key is missing from Config!")
         raise ValueError("Supabase URL and anon Key are required for auth operations.")
 
     try:
-        supabase_auth_client = create_client(url, key)
-        logger.info("Supabase auth client initialized with anon key.")
-        return supabase_auth_client
+        client = create_client(url, key, options=ClientOptions(storage=FlaskSessionStorage()))
+        return client
     except Exception as e:
         logger.error(f"Failed to initialize Supabase auth client: {str(e)}")
         raise e
