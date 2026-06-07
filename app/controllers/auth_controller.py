@@ -137,6 +137,9 @@ def login_google():
     """Redirect user to Google login interface via Supabase OAuth."""
     try:
         callback_url = url_for('auth.google_callback', _external=True)
+        # Ensure https in production (Vercel proxy may still forward http scheme)
+        if not callback_url.startswith('https://') and not callback_url.startswith('http://localhost'):
+            callback_url = callback_url.replace('http://', 'https://', 1)
         auth_client = get_supabase_auth_client()
 
         response = auth_client.auth.sign_in_with_oauth({
