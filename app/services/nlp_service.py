@@ -63,7 +63,7 @@ class NlpService:
             path = (f'tokenizers/{dataset}' if dataset in ('punkt', 'punkt_tab') else f'corpora/{dataset}')
             try:
                 nltk.data.find(path)
-            except LookupError:
+            except (LookupError, OSError):
                 logger.info(f"NLTK dataset '{dataset}' not found. Downloading...")
                 try:
                     nltk.download(dataset, quiet=True, download_dir=nltk_dir)

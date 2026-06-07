@@ -12,8 +12,14 @@ logger = logging.getLogger(__name__)
 resume_bp = Blueprint('resume', __name__)
 
 parsing_service = ParsingService()
-nlp_service = NlpService()
+_nlp_service = None
 rec_service = RecommendationService()
+
+def get_nlp_service():
+    global _nlp_service
+    if _nlp_service is None:
+        _nlp_service = NlpService()
+    return _nlp_service
 claude_service = ClaudeService()
 storage_service = StorageService()
 resume_repo = ResumeRepository()
@@ -94,8 +100,8 @@ def upload_resume():
 
         if not extracted_skills:
             logger.info(f"Using local NLP parser for user {user_id}")
-            extracted_skills = nlp_service.extract_skills(raw_text)
-            structured_data = nlp_service.extract_structured_data(raw_text)
+            extracted_skills = get_nlp_service().extract_skills(raw_text)
+            structured_data = get_nlp_service().extract_structured_data(raw_text)
 
         # 4. Save to database
         resume_repo.save_resume(user_id, file.filename, raw_text, structured_data, file_url)
