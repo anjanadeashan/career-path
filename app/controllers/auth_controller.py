@@ -133,18 +133,36 @@ def resend_verification():
             flash(result.get('error', "Failed to resend verification email. Please try again later."), "danger")
     return redirect(url_for('auth.login'))
 
-# Key under which we store the PKCE code verifier (gotrue writes it under this Flask session key)
-_GOTRUE_PKCE_KEY = '_sb_supabase.auth.token-code-verifier'
 _OUR_PKCE_KEY = '_oauth_pkce_verifier'
+
+
+def _find_pkce_verifier_in_session():
+    """Find the PKCE code verifier stored by gotrue regardless of key naming convention."""
+    # Try our explicit key first
+    verifier = session.get(_OUR_PKCE_KEY)
+    if verifier:
+        return verifier
+    # Fall back: gotrue stores it under a key containing 'code-verifier'
+    for key in list(session.keys()):
+        if 'code-verifier' in key:
+            return session.get(key)
+    return None
+
+
+def _clear_pkce_state():
+    """Remove all PKCE-related keys from the Flask session."""
+    session.pop(_OUR_PKCE_KEY, None)
+    for key in [k for k in list(session.keys()) if 'code-verifier' in k]:
+        session.pop(key, None)
+
 
 # 1. Route to redirect the user to Google Login Page
 @auth_bp.route('/login/google')
 def login_google():
     """Redirect user to Google login interface via Supabase OAuth."""
     try:
-        # Clear any stale PKCE/session state from a previous failed attempt
-        session.pop(_GOTRUE_PKCE_KEY, None)
-        session.pop(_OUR_PKCE_KEY, None)
+        # Clear stale PKCE state from any previous failed attempt
+        _clear_pkce_state()
 
         app_url = os.environ.get('APP_URL', '').rstrip('/')
         if app_url:
@@ -163,14 +181,16 @@ def login_google():
         })
 
         if response.url:
-            # Gotrue stored the PKCE verifier via FlaskSessionStorage — copy it to a
-            # simple key so google_callback can pass it explicitly to exchange_code_for_session.
-            code_verifier = session.get(_GOTRUE_PKCE_KEY)
+            # Gotrue stored the PKCE verifier via FlaskSessionStorage — copy it to our
+            # own key so google_callback can pass it explicitly to exchange_code_for_session.
+            code_verifier = _find_pkce_verifier_in_session()
             if code_verifier:
                 session[_OUR_PKCE_KEY] = code_verifier
-                logger.info("PKCE code verifier saved to session.")
+                logger.info("PKCE code verifier captured in session.")
             else:
-                logger.warning("PKCE code verifier not found in session after sign_in_with_oauth.")
+                logger.warning(
+                    f"PKCE code verifier not found. Session keys: {list(session.keys())}"
+                )
             return redirect(response.url)
 
         flash("Failed to generate Google Login URL.", "danger")
@@ -203,8 +223,9 @@ def google_callback():
 
     try:
         auth_client = get_supabase_auth_client()
-        # Read and consume the PKCE verifier we saved during login_google
-        code_verifier = session.pop(_OUR_PKCE_KEY, None) or session.pop(_GOTRUE_PKCE_KEY, None)
+        # Read and consume the PKCE verifier saved during login_google
+        code_verifier = _find_pkce_verifier_in_session()
+        _clear_pkce_state()
         logger.info(f"Exchanging code. code_verifier present: {bool(code_verifier)}")
 
         exchange_params = {"auth_code": code}
