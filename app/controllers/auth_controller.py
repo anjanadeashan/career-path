@@ -195,6 +195,9 @@ def login_google():
 @auth_bp.route('/auth/callback')
 def google_callback():
     """Handle the OAuth callback redirect from Supabase and sign the user in."""
+    logger.info(f"==== FULL CALLBACK URL ====: {request.url}")
+    logger.info(f"==== SESSION KEYS ====: {list(session.keys())}")
+
     # Check for OAuth error response from Supabase/Google
     error = request.args.get('error')
     error_description = request.args.get('error_description', '')
