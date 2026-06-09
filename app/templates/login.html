@@ -50,19 +50,7 @@
                     </div>
                     <button type="submit" class="btn gradient-btn w-100 py-3 mt-2">Sign In</button>
                 </form>
-                
-                <div class="text-center my-3 text-secondary" style="font-size: 0.85rem;">
-                    <span>or</span>
-                </div>
 
-                <a href="{{ url_for('auth.login_google') }}" class="btn btn-outline-light w-100 d-flex align-items-center justify-content-center gap-2 border-secondary py-2" style="background: rgba(255,255,255,0.02); transition: all 0.2s;">
-                    <!-- Google Icon -->
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-google text-danger" viewBox="0 0 16 16">
-                        <path d="M15.545 6.558a9.42 9.42 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0c2.204 0 4.079.804 5.517 2.112l-2.22 2.22C10.3 3.393 9.274 3 8 3 5.243 3 3 5.243 3 8s2.243 5 5 5c3.2 0 3.89-2.26 4.005-3.016H8V6.558h7.545z"/>
-                    </svg>
-                    <span>Continue with Google</span>
-                </a>
-                
                 <div class="text-center mt-4">
                     <p class="text-secondary small mb-0">Don't have an account? <a href="{{ url_for('auth.register') }}" class="text-primary text-decoration-none fw-semibold">Register here</a></p>
                 </div>
