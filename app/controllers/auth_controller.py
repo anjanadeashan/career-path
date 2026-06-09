@@ -161,7 +161,7 @@ def login_google():
             "provider": "google",
             "options": {
                 "redirect_to": callback_url,
-                "skip_http_redirect": True,   # server-side: returns code_verifier in response
+                "skip_browser_redirect": True,   # server-side: returns code_verifier in response
             }
         })
 
