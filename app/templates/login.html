@@ -6,33 +6,6 @@
 <div class="container my-5">
     <div class="row justify-content-center py-3 py-md-5">
         <div class="col-11 col-sm-9 col-md-6 col-lg-5">
-            {% if session.get('awaiting_verification') %}
-                <div class="glass-card p-4 border-warning mb-4 text-white">
-                    <div class="d-flex align-items-start gap-3">
-                        <i class="fa-solid fa-envelope-open-text text-warning fs-3 mt-1"></i>
-                        <div>
-                            <h5 class="fw-bold text-warning font-heading mb-1">Verify Your Email</h5>
-                            <p class="text-secondary small mb-3" style="line-height: 1.5;">
-                                We've sent a verification link to <strong class="text-white">{{ session.get('awaiting_verification') }}</strong>. 
-                                Please confirm your email address before attempting to sign in.
-                            </p>
-                            <div class="d-flex gap-2">
-                                <form action="{{ url_for('auth.resend_verification') }}" method="POST" class="d-inline">
-                                    <button type="submit" class="btn btn-sm btn-warning py-1 px-3 rounded-pill text-dark fw-semibold" style="font-size: 0.72rem;">
-                                        <i class="fa-solid fa-paper-plane me-1"></i>Resend Link
-                                    </button>
-                                </form>
-                                <form action="{{ url_for('auth.clear_verification') }}" method="POST" class="d-inline">
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary py-1 px-3 rounded-pill text-white" style="font-size: 0.72rem; border-color: rgba(255,255,255,0.25);">
-                                        Dismiss
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
-            
             <div class="glass-card p-4 p-md-5 border-secondary">
                 <div class="text-center mb-4">
                     <h2 class="fw-bold font-heading">Welcome Back</h2>

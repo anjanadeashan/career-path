@@ -33,8 +33,6 @@ def login():
         result = auth_service.login(email, password)
         
         if result.get('success'):
-            # Clear pending verification flag on successful login
-            session.pop('awaiting_verification', None)
             # Save token & user details in session
             session['user_id'] = result['user_id']
             session['user_email'] = result['email']
@@ -91,10 +89,9 @@ def register():
         result = auth_service.register(email, password, full_name, role)
         
         if result.get('success'):
-            session['awaiting_verification'] = email
             if request.is_json:
                 return jsonify({"success": True, "message": result['message'], "redirect": url_for('auth.login')})
-            flash(result['message'], 'success')
+            flash("Registration successful! You can now sign in.", 'success')
             return redirect(url_for('auth.login'))
         else:
             error_msg = result.get('error', 'Registration failed.')
@@ -112,21 +109,4 @@ def logout():
     flash("You have been successfully logged out.", "success")
     return redirect(url_for('auth.login'))
 
-@auth_bp.route('/clear-verification', methods=['POST'])
-def clear_verification():
-    """Manually clear the pending verification session banner."""
-    session.pop('awaiting_verification', None)
-    return redirect(url_for('auth.login'))
-
-@auth_bp.route('/resend-verification', methods=['POST'])
-def resend_verification():
-    """Resend the Supabase signup confirmation email to the user."""
-    email = session.get('awaiting_verification')
-    if email:
-        result = auth_service.resend_verification(email)
-        if result.get('success'):
-            flash("Verification email resent successfully! Please check your inbox.", "success")
-        else:
-            flash(result.get('error', "Failed to resend verification email. Please try again later."), "danger")
-    return redirect(url_for('auth.login'))
 
