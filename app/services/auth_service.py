@@ -1,5 +1,5 @@
 import logging
-from app.services.supabase_client import get_supabase_client
+from app.services.supabase_client import get_supabase_client, get_supabase_auth_client
 from app.repositories.profile_repository import ProfileRepository
 
 logger = logging.getLogger(__name__)
@@ -15,15 +15,17 @@ class AuthService:
         """
         Register a new user in Supabase.
         The trigger `handle_new_user` in the DB will automatically copy metadata to public.profiles.
+        Uses the anon key client so Supabase sends the verification email (service role skips it).
         """
         try:
+            anon_client = get_supabase_auth_client()
             signup_options = {
                 "data": {
                     "full_name": full_name,
                     "role": role
                 }
             }
-            response = self.db.auth.sign_up({
+            response = anon_client.auth.sign_up({
                 "email": email,
                 "password": password,
                 "options": signup_options
@@ -111,8 +113,8 @@ class AuthService:
     def resend_verification(self, email: str):
         """Resend signup confirmation email."""
         try:
-            # Supabase API for resend: type is 'signup'
-            self.db.auth.resend({
+            anon_client = get_supabase_auth_client()
+            anon_client.auth.resend({
                 "type": "signup",
                 "email": email
             })
