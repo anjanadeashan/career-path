@@ -579,6 +579,11 @@ def _skills_match(user_skill: str, required_skill: str) -> bool:
         "tf": "tensorflow",
         "api": "rest apis",
         "rest api": "rest apis",
+        "hr": "human resources",
+        "ui": "ui/ux",
+        "ux": "ui/ux",
+        "pm": "project management",
+        "seo": "search engine optimization",
     }
     u2 = aliases.get(u, u)
     r2 = aliases.get(r, r)

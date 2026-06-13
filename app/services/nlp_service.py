@@ -18,7 +18,15 @@ TECHNICAL_SKILLS = [
     "data science", "data analysis", "data engineering", "artificial intelligence", "ai",
     "power bi", "tableau", "excel", "r", "sas", "spss", "matlab",
     "aws", "gcp", "google cloud", "azure", "docker", "kubernetes", "git", "github", "gitlab",
-    "ci/cd", "jenkins", "terraform", "ansible", "linux", "unix", "rest apis", "graphql", "grpc"
+    "ci/cd", "jenkins", "terraform", "ansible", "linux", "unix", "rest apis", "graphql", "grpc",
+    "marketing", "seo", "digital marketing", "social media", "content writing", "copywriting", "email marketing", "google ads", "branding", "public relations",
+    "sales", "b2b sales", "crm", "salesforce", "negotiation", "account management", "business development",
+    "finance", "accounting", "financial modeling", "auditing", "tax compliance", "bookkeeping", "bloomberg", "risk management",
+    "human resources", "hr", "recruitment", "talent acquisition", "employee relations", "onboarding", "payroll",
+    "healthcare", "nursing", "clinical research", "patient care", "ehr", "medical terminology", "triage",
+    "education", "teaching", "curriculum development", "instructional design", "e-learning", "lms",
+    "business analysis", "project management", "agile", "scrum", "operations management", "supply chain", "logistics",
+    "design", "graphic design", "ui/ux", "figma", "adobe photoshop", "adobe illustrator", "video editing", "autocad", "solidworks"
 ]
 
 SOFT_SKILLS = [

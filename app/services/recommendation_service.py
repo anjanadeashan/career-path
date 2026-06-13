@@ -83,7 +83,11 @@ SYNONYM_GROUPS = [
     {"git", "github", "gitlab", "version control"},
     {"css", "css3", "tailwind", "tailwind css", "tailwindcss", "bootstrap", "sass", "scss", "less"},
     {"html", "html5"},
-    {"docker", "kubernetes", "k8s", "containers"}
+    {"docker", "kubernetes", "k8s", "containers"},
+    {"hr", "human resources", "talent acquisition", "recruiting"},
+    {"seo", "search engine optimization"},
+    {"ux", "ui", "user experience", "user interface", "ui/ux"},
+    {"pm", "project management", "project manager"}
 ]
 
 IMPLICATIONS = {
@@ -92,7 +96,11 @@ IMPLICATIONS = {
     "javascript": ["typescript", "react", "react.js", "reactjs", "next.js", "nextjs", "node.js", "nodejs", "express", "vue", "vue.js", "vuejs", "angular", "angularjs", "jquery"],
     "css": ["tailwind", "tailwindcss", "bootstrap", "sass", "scss", "less"],
     "machine learning": ["scikit-learn", "pytorch", "tensorflow", "keras", "deep learning", "nlp", "natural language processing", "computer vision", "reinforcement learning", "data science"],
-    "devops": ["docker", "kubernetes", "jenkins", "ci/cd", "terraform", "ansible", "aws", "gcp", "azure", "kubernetes", "github actions"]
+    "devops": ["docker", "kubernetes", "jenkins", "ci/cd", "terraform", "ansible", "aws", "gcp", "azure", "kubernetes", "github actions"],
+    "marketing": ["seo", "social media", "content writing", "email marketing", "google ads", "digital marketing"],
+    "finance": ["accounting", "financial modeling", "excel", "auditing", "tax compliance"],
+    "design": ["figma", "adobe photoshop", "adobe illustrator", "ui/ux", "graphic design"],
+    "human resources": ["recruitment", "talent acquisition", "employee relations", "onboarding"]
 }
 
 class RecommendationService:
