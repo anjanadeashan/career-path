@@ -628,3 +628,50 @@ class ClaudeService:
             "top_skill_gaps": top_skill_gaps,
             "is_mock": True
         }
+
+    def generate_cover_letter(self, user_id: str, job_title: str, company_name: str, job_description: str) -> dict:
+        """
+        Generates a highly tailored cover letter using the candidate's resume and the target job description.
+        """
+        try:
+            resume = self.resume_repo.get_latest_resume(user_id)
+            if not resume:
+                return {"success": False, "error": "No resume found. Please upload a CV first."}
+
+            resume_text = resume.get('raw_text', '')
+
+            system_prompt = (
+                "You are an expert Career Coach and Executive Copywriter. "
+                "Your task is to write a compelling, professional, and ATS-friendly cover letter. "
+                "You must align the candidate's past experience directly with the provided job description. "
+                "Do not make up facts or experiences the candidate does not have. "
+                "Format the response as a clean text document with standard cover letter formatting (Header, Salutation, 3 Body Paragraphs, Conclusion, Sign-off). "
+                "Highlight 2-3 key achievements from the resume that perfectly match the job requirements."
+            )
+
+            user_prompt = (
+                f"Target Job Title: {job_title}\n"
+                f"Target Company: {company_name}\n"
+                f"Job Description: {job_description}\n\n"
+                f"Candidate's Resume:\n{resume_text[:6000]}\n\n"
+                "Please generate the tailored cover letter."
+            )
+
+            if self.client:
+                response = self.client.messages.create(
+                    model="claude-3-haiku-20240307",
+                    max_tokens=1500,
+                    temperature=0.4,
+                    system=system_prompt,
+                    messages=[{"role": "user", "content": user_prompt}]
+                )
+                return {"success": True, "cover_letter": response.content[0].text}
+            else:
+                # Mock Cover letter if API is disabled
+                return {
+                    "success": True,
+                    "cover_letter": f"Dear Hiring Manager at {company_name},\n\nI am writing to express my strong interest in the {job_title} position...\n\n[Please enable Anthropic API to generate full AI cover letter]"
+                }
+        except Exception as e:
+            logger.error(f"Error generating cover letter: {str(e)}")
+            return {"success": False, "error": str(e)}
