@@ -1,4 +1,6 @@
+import json
 import logging
+import re
 from flask import Blueprint, render_template, session, redirect, url_for, flash, jsonify
 from app.controllers.auth_helper import login_required
 from app.services.claude_service import ClaudeService
@@ -12,18 +14,38 @@ claude_service = ClaudeService()
 job_repo = JobRepository()
 resume_repo = ResumeRepository()
 
+
+def _parse_advisor_meta(feedback: dict) -> dict:
+    """Extract profile_score and top_skill_gaps from the hidden HTML comment in feedback_text."""
+    if not feedback:
+        return feedback
+    raw = feedback.get('feedback_text', '')
+    match = re.search(r'<!--advisor_meta:(\{.*?\})-->', raw, re.DOTALL)
+    if match:
+        try:
+            meta = json.loads(match.group(1))
+            feedback['profile_score'] = meta.get('profile_score', 0)
+            feedback['top_skill_gaps'] = meta.get('top_skill_gaps', [])
+            feedback['feedback_text'] = raw[:match.start()].rstrip()
+        except (json.JSONDecodeError, KeyError):
+            feedback.setdefault('profile_score', 0)
+            feedback.setdefault('top_skill_gaps', [])
+    else:
+        feedback.setdefault('profile_score', 0)
+        feedback.setdefault('top_skill_gaps', [])
+    return feedback
+
+
 @career_bp.route('/advisor', methods=['GET'])
 @login_required
 def advisor():
     """Display the AI Career Advisor feedback and suggestions page."""
     user_id = session['user_id']
-    
-    # Check if a resume exists
+
     resume = resume_repo.get_latest_resume(user_id)
-    
-    # Fetch latest feedback if already precomputed
     feedback = job_repo.get_latest_career_feedback(user_id)
-    
+    feedback = _parse_advisor_meta(feedback)
+
     return render_template(
         'advisor.html',
         feedback=feedback,

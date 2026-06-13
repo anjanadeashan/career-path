@@ -5,186 +5,535 @@
 {% block content %}
 <div class="container my-4">
 
+    <!-- Header -->
     <div class="text-center mb-5">
-        <h1 class="display-5 fw-bold font-heading"><i class="fa-solid fa-robot text-primary me-2"></i>AI Career Advisor
+        <h1 class="display-5 fw-bold font-heading">
+            <i class="fa-solid fa-robot text-primary me-2"></i>AI Career Advisor
         </h1>
-        <p class="text-secondary mx-auto px-2" style="max-width: 600px;">
-            Get personalized professional feedback, custom resume suggestions, and certificate roadmaps designed by our
-            claude AI integrations.
+        <p class="text-secondary mx-auto px-2" style="max-width: 620px;">
+            Powered by Claude AI — personalized career analysis, skill gap detection, and a 30/60/90-day action plan built from your resume.
         </p>
     </div>
 
     {% if not has_resume %}
+    <!-- No Resume State -->
     <div class="row justify-content-center">
-        <div class="col-md-8 text-center py-5">
+        <div class="col-md-7 text-center py-5">
             <div class="glass-card p-5 border-secondary">
                 <i class="fa-solid fa-file-invoice fs-1 text-secondary mb-3"></i>
-                <h3>No Active Resume Found</h3>
-                <p class="text-secondary mb-4">You need to upload your resume first so that the AI Advisor can analyze
-                    your background.</p>
-                <a href="{{ url_for('resume.profile') }}" class="btn gradient-btn px-4 py-2.5">
+                <h3>No Resume Found</h3>
+                <p class="text-secondary mb-4">Upload your resume so the AI Advisor can analyze your background and generate a personalized career roadmap.</p>
+                <a href="{{ url_for('resume.profile') }}" class="btn gradient-btn px-4 py-2">
                     <i class="fa-solid fa-arrow-up-from-bracket me-2"></i> Upload Resume Now
                 </a>
             </div>
         </div>
     </div>
+
     {% else %}
+
+    <!-- No Feedback Yet -->
+    {% if not feedback %}
+    <div class="row justify-content-center">
+        <div class="col-md-7 text-center py-5">
+            <div class="glass-card p-5 border-secondary">
+                <i class="fa-regular fa-lightbulb fs-1 text-warning mb-3"></i>
+                <h3>Ready to Analyze Your Profile</h3>
+                <p class="text-secondary mb-4">Your resume is uploaded. Click below to run the full AI analysis — profile score, skill gaps, career paths, action plan and more.</p>
+                <button id="first-generate-btn" class="btn gradient-btn px-5 py-2">
+                    <i class="fa-solid fa-wand-magic-sparkles me-2"></i> Generate AI Analysis
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+
+    <!-- ── Profile Score Bar ── -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-lg-11">
+            <div class="glass-card p-4 border-secondary">
+                <div class="row align-items-center g-3">
+                    <div class="col-auto text-center" style="min-width:110px;">
+                        <div class="position-relative d-inline-flex align-items-center justify-content-center"
+                             style="width:90px;height:90px;">
+                            <svg width="90" height="90" viewBox="0 0 90 90" style="transform:rotate(-90deg);">
+                                <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8"/>
+                                <circle id="score-ring" cx="45" cy="45" r="38" fill="none"
+                                        stroke="url(#scoreGrad)" stroke-width="8"
+                                        stroke-linecap="round"
+                                        stroke-dasharray="238.76"
+                                        stroke-dashoffset="238.76"
+                                        style="transition: stroke-dashoffset 1.2s ease;">
+                                </circle>
+                                <defs>
+                                    <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#6366f1"/>
+                                        <stop offset="100%" stop-color="#22d3ee"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <div class="position-absolute text-center">
+                                <div id="score-number" class="fw-bold fs-4 lh-1" style="color:#e2e8f0;">0</div>
+                                <div class="text-secondary" style="font-size:0.65rem;">/ 100</div>
+                            </div>
+                        </div>
+                        <div class="text-secondary mt-1" style="font-size:0.72rem;">Profile Score</div>
+                    </div>
+
+                    <div class="col">
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                            <h5 class="mb-0 fw-bold text-white">Market Readiness Overview</h5>
+                            <span id="score-label" class="badge rounded-pill px-3 py-1" style="font-size:0.75rem;"></span>
+                        </div>
+                        <div id="progress-bar-wrap" class="mb-2">
+                            <div class="progress" style="height:10px; border-radius:99px; background:rgba(255,255,255,0.07);">
+                                <div id="score-bar" class="progress-bar" role="progressbar"
+                                     style="width:0%; border-radius:99px; background:linear-gradient(90deg,#6366f1,#22d3ee); transition: width 1.2s ease;"
+                                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                        <!-- Skill Gap Chips -->
+                        {% if feedback.top_skill_gaps %}
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <span class="text-secondary small me-1 align-self-center">Top gaps:</span>
+                            {% for gap in feedback.top_skill_gaps %}
+                            <span class="badge rounded-pill px-3 py-1
+                                {% if gap.urgency == 'Critical' %}bg-danger bg-opacity-20 text-danger border border-danger border-opacity-40
+                                {% elif gap.urgency == 'Moderate' %}bg-warning bg-opacity-20 text-warning border border-warning border-opacity-40
+                                {% else %}bg-secondary bg-opacity-20 text-secondary border border-secondary border-opacity-40{% endif %}"
+                                  style="font-size:0.75rem; cursor:default;"
+                                  title="{{ gap.reason }}">
+                                {% if gap.urgency == 'Critical' %}<i class="fa-solid fa-triangle-exclamation me-1"></i>{% endif %}
+                                {{ gap.skill }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-auto">
+                        <button id="generate-advisor-btn"
+                            class="btn btn-outline-light btn-sm border-secondary d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                            <span class="d-none d-sm-inline">Recalculate</span>
+                        </button>
+                        {% if feedback.created_at %}
+                        <div class="text-secondary text-end mt-2" style="font-size:0.7rem;">
+                            <i class="fa-regular fa-clock me-1"></i>{{ feedback.created_at[:10] }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Main Content Row ── -->
     <div class="row g-4 justify-content-center">
 
-        <!-- Left Side: Interactive Advisor Console -->
+        <!-- Left: Tabbed Feedback Report -->
         <div class="col-12 col-lg-7">
             <div class="glass-card p-4 border-secondary h-100">
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-                    <h3 class="mb-0 font-heading"><i class="fa-solid fa-graduation-cap text-success me-2"></i>AI
-                        Feedback Report</h3>
-                    <button id="generate-advisor-btn"
-                        class="btn btn-outline-light btn-sm border-secondary d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-arrows-rotate"></i> Recalculate Feedback
-                    </button>
-                </div>
+
+                <!-- Tab Nav -->
+                <ul class="nav nav-pills mb-4 flex-wrap gap-1" id="advisorTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active advisor-tab px-3 py-1" data-bs-toggle="pill"
+                                data-bs-target="#tab-full" type="button" role="tab"
+                                style="font-size:0.82rem;">
+                            <i class="fa-solid fa-file-lines me-1"></i>Full Report
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link advisor-tab px-3 py-1" data-bs-toggle="pill"
+                                data-bs-target="#tab-plan" type="button" role="tab"
+                                style="font-size:0.82rem;">
+                            <i class="fa-solid fa-calendar-days me-1"></i>Action Plan
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link advisor-tab px-3 py-1" data-bs-toggle="pill"
+                                data-bs-target="#tab-linkedin" type="button" role="tab"
+                                style="font-size:0.82rem;">
+                            <i class="fa-brands fa-linkedin me-1"></i>LinkedIn
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link advisor-tab px-3 py-1" data-bs-toggle="pill"
+                                data-bs-target="#tab-interview" type="button" role="tab"
+                                style="font-size:0.82rem;">
+                            <i class="fa-solid fa-comments me-1"></i>Interview
+                        </button>
+                    </li>
+                </ul>
 
                 <!-- Loading Screen -->
                 <div id="advisor-loading" class="text-center py-5 d-none">
-                    <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
-                        <span class="visually-hidden">Analyzing...</span>
+                    <div id="loading-spinner" class="mb-3">
+                        <div class="spinner-border text-primary" style="width:3rem;height:3rem;" role="status">
+                            <span class="visually-hidden">Analyzing...</span>
+                        </div>
                     </div>
-                    <h5>Analyzing Profile via Claude LLM...</h5>
-                    <p class="text-secondary small">This takes about 5-10 seconds to read experience blocks and build
-                        tailored suggestions.</p>
+                    <h5 class="mb-2">Analyzing your profile with Claude AI...</h5>
+                    <div id="loading-steps" class="text-secondary small">
+                        <div id="step-1" class="loading-step mb-1"><i class="fa-solid fa-check text-success me-2 d-none"></i><i class="fa-solid fa-circle-notch fa-spin me-2 text-primary"></i>Reading resume & skills…</div>
+                        <div id="step-2" class="loading-step mb-1 opacity-50"><i class="fa-solid fa-check text-success me-2 d-none"></i><i class="fa-solid fa-circle-notch me-2"></i>Evaluating market fit & gaps…</div>
+                        <div id="step-3" class="loading-step mb-1 opacity-50"><i class="fa-solid fa-check text-success me-2 d-none"></i><i class="fa-solid fa-circle-notch me-2"></i>Building 30/60/90-day plan…</div>
+                        <div id="step-4" class="loading-step opacity-50"><i class="fa-solid fa-check text-success me-2 d-none"></i><i class="fa-solid fa-circle-notch me-2"></i>Finalizing report…</div>
+                    </div>
                 </div>
 
-                <!-- Feedback Display -->
-                <div id="advisor-content">
-                    {% if feedback %}
-                    <div id="advisor-rendered-report" class="p-3 rounded bg-dark bg-opacity-40 border border-secondary border-opacity-50 text-secondary markdown-body"
-                        style="line-height: 1.7; font-size: 0.95rem;">
-                        <script id="markdown-data" type="text/markdown">{{ feedback.feedback_text }}</script>
+                <!-- Tab Content -->
+                <div class="tab-content" id="advisorTabContent">
+
+                    <!-- Full Report Tab -->
+                    <div class="tab-pane fade show active" id="tab-full" role="tabpanel">
+                        <div id="advisor-rendered-report"
+                             class="p-3 rounded border border-secondary border-opacity-25 text-secondary markdown-body advisor-report-body"
+                             style="line-height:1.75; font-size:0.9rem; max-height:62vh; overflow-y:auto;">
+                        </div>
+                    </div>
+
+                    <!-- Action Plan Tab -->
+                    <div class="tab-pane fade" id="tab-plan" role="tabpanel">
+                        <div id="advisor-plan-body"
+                             class="p-3 rounded border border-secondary border-opacity-25 text-secondary markdown-body advisor-report-body"
+                             style="line-height:1.75; font-size:0.9rem; max-height:62vh; overflow-y:auto;">
+                        </div>
+                    </div>
+
+                    <!-- LinkedIn Tab -->
+                    <div class="tab-pane fade" id="tab-linkedin" role="tabpanel">
+                        <div id="advisor-linkedin-body"
+                             class="p-3 rounded border border-secondary border-opacity-25 text-secondary markdown-body advisor-report-body"
+                             style="line-height:1.75; font-size:0.9rem; max-height:62vh; overflow-y:auto;">
+                        </div>
+                        <div id="linkedin-copy-area" class="mt-3 d-none">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="text-secondary small fw-bold">Suggested Headline</span>
+                                <button class="btn btn-outline-secondary btn-sm py-0 px-2" id="copy-headline-btn" style="font-size:0.75rem;">
+                                    <i class="fa-regular fa-copy me-1"></i>Copy
+                                </button>
+                            </div>
+                            <div id="headline-text" class="p-2 rounded border border-secondary border-opacity-30 text-white small"
+                                 style="background:rgba(255,255,255,0.04); font-style:italic;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Interview Tab -->
+                    <div class="tab-pane fade" id="tab-interview" role="tabpanel">
+                        <div id="advisor-interview-body"
+                             class="p-3 rounded border border-secondary border-opacity-25 text-secondary markdown-body advisor-report-body"
+                             style="line-height:1.75; font-size:0.9rem; max-height:62vh; overflow-y:auto;">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Career Paths + Certs -->
+        <div class="col-12 col-lg-4">
+
+            <!-- Career Path Cards -->
+            <div class="glass-card p-4 border-secondary mb-4">
+                <h5 class="font-heading text-white mb-3">
+                    <i class="fa-solid fa-route text-primary me-2"></i>Recommended Career Paths
+                </h5>
+                <div id="paths-list-container">
+                    {% if feedback.career_paths %}
+                    {% for path in feedback.career_paths %}
+                    {% if path is mapping %}
+                    <div class="advisor-path-card p-3 rounded mb-2 border border-secondary border-opacity-20"
+                         style="background:rgba(255,255,255,0.03); transition: background 0.2s;">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                            <span class="fw-semibold text-white" style="font-size:0.88rem;">{{ path.title }}</span>
+                            <span class="badge rounded-pill flex-shrink-0
+                                {% if path.demand == 'High' %}bg-success bg-opacity-20 text-success
+                                {% elif path.demand == 'Medium' %}bg-warning bg-opacity-20 text-warning
+                                {% else %}bg-secondary bg-opacity-20 text-secondary{% endif %}"
+                                  style="font-size:0.68rem;">{{ path.demand }} Demand</span>
+                        </div>
+                        {% if path.salary_range %}
+                        <div class="text-info mb-1" style="font-size:0.78rem;">
+                            <i class="fa-solid fa-sack-dollar me-1"></i>{{ path.salary_range }}
+                        </div>
+                        {% endif %}
+                        {% if path.why_fit %}
+                        <div class="text-secondary" style="font-size:0.75rem;">{{ path.why_fit }}</div>
+                        {% endif %}
                     </div>
                     {% else %}
-                    <div class="text-center py-5 text-secondary">
-                        <i class="fa-regular fa-lightbulb fs-1 mb-3 text-warning"></i>
-                        <p>No feedback report computed yet. Click the button below to trigger your first analysis.</p>
-                        <button id="first-generate-btn" class="btn gradient-btn px-4 py-2 mt-2">
-                            <i class="fa-solid fa-wand-magic-sparkles me-2"></i> Generate AI Analysis
-                        </button>
+                    <div class="d-flex align-items-center gap-2 py-2 border-bottom border-secondary border-opacity-20">
+                        <i class="fa-solid fa-angles-right text-primary"></i>
+                        <span class="text-white" style="font-size:0.88rem;">{{ path }}</span>
                     </div>
+                    {% endif %}
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted small">Generate advisor feedback to view career paths.</p>
                     {% endif %}
                 </div>
             </div>
-        </div>
 
-        <!-- Right Side: LinkedIn-Style Recommendations -->
-        <div class="col-12 col-lg-4">
-            <div class="glass-card p-4 border-secondary h-100 d-flex flex-column justify-content-between">
-                <div>
-                    <h3 class="mb-4 font-heading text-white"><i
-                            class="fa-brands fa-linkedin text-primary me-2"></i>LinkedIn Pathways</h3>
-
-                    <!-- Career Paths -->
-                    <div class="mb-4">
-                        <h5 class="text-secondary small text-uppercase fw-bold mb-3">Suggested Roles</h5>
-                        <div id="paths-list-container" class="list-group list-group-flush border-0">
-                            {% if feedback and feedback.career_paths %}
-                            {% for path in feedback.career_paths %}
-                            <div
-                                class="list-group-item bg-transparent text-white border-secondary border-opacity-40 px-0 py-2.5 d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-angles-right text-primary"></i> {{ path }}
-                            </div>
-                            {% endfor %}
-                            {% else %}
-                            <div class="text-muted small">Generate advisor feedback to view roles.</div>
+            <!-- Certification Cards -->
+            <div class="glass-card p-4 border-secondary">
+                <h5 class="font-heading text-white mb-3">
+                    <i class="fa-solid fa-award text-warning me-2"></i>Recommended Certifications
+                </h5>
+                <div id="certs-list-container">
+                    {% if feedback.recommended_certifications %}
+                    {% for cert in feedback.recommended_certifications %}
+                    {% if cert is mapping %}
+                    <div class="advisor-cert-card p-3 rounded mb-2 border border-secondary border-opacity-20"
+                         style="background:rgba(255,255,255,0.03);">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                            <span class="fw-semibold text-white" style="font-size:0.85rem;">{{ cert.name }}</span>
+                            <span class="badge rounded-pill flex-shrink-0
+                                {% if cert.priority == 'High' %}bg-danger bg-opacity-20 text-danger
+                                {% elif cert.priority == 'Medium' %}bg-warning bg-opacity-20 text-warning
+                                {% else %}bg-secondary bg-opacity-20 text-secondary{% endif %}"
+                                  style="font-size:0.67rem;">{{ cert.priority }}</span>
+                        </div>
+                        <div class="d-flex gap-3 mb-1" style="font-size:0.75rem;">
+                            {% if cert.platform %}
+                            <span class="text-primary"><i class="fa-solid fa-building-columns me-1"></i>{{ cert.platform }}</span>
+                            {% endif %}
+                            {% if cert.duration %}
+                            <span class="text-secondary"><i class="fa-regular fa-clock me-1"></i>{{ cert.duration }}</span>
                             {% endif %}
                         </div>
+                        {% if cert.reason %}
+                        <div class="text-secondary" style="font-size:0.74rem;">{{ cert.reason }}</div>
+                        {% endif %}
                     </div>
-
-                    <!-- Target Certifications -->
-                    <div>
-                        <h5 class="text-secondary small text-uppercase fw-bold mb-3">Recommended Certifications</h5>
-                        <div id="certs-list-container" class="list-group list-group-flush border-0">
-                            {% if feedback and feedback.recommended_certifications %}
-                            {% for cert in feedback.recommended_certifications %}
-                            <div
-                                class="list-group-item bg-transparent text-white border-secondary border-opacity-40 px-0 py-2.5 d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-award text-warning fs-5"></i> {{ cert }}
-                            </div>
-                            {% endfor %}
-                            {% else %}
-                            <div class="text-muted small">Generate advisor feedback to view certifications.</div>
-                            {% endif %}
-                        </div>
+                    {% else %}
+                    <div class="d-flex align-items-center gap-2 py-2 border-bottom border-secondary border-opacity-20">
+                        <i class="fa-solid fa-award text-warning"></i>
+                        <span class="text-white" style="font-size:0.88rem;">{{ cert }}</span>
                     </div>
-                </div>
-
-                <div class="pt-4 border-top border-secondary border-opacity-50 mt-4 text-center">
-                    <p class="text-secondary small mb-0"><i class="fa-solid fa-shield-halved text-info me-1"></i>Secure
-                        Claude-3-Haiku Endpoint</p>
+                    {% endif %}
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted small">Generate advisor feedback to view certifications.</p>
+                    {% endif %}
                 </div>
             </div>
-        </div>
 
+        </div>
     </div>
+
     {% endif %}
+    {% endif %}
+
 </div>
+
+<!-- Hidden data for JS -->
+<script id="advisor-raw-markdown" type="text/plain">{{ (feedback.feedback_text or '') | e }}</script>
+<script id="advisor-score-data" type="application/json">{{ (feedback.profile_score or 0) | tojson }}</script>
 {% endblock %}
 
 {% block scripts %}
-<!-- marked.js Markdown Parser -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const genBtn = document.getElementById('generate-advisor-btn');
-        const firstGenBtn = document.getElementById('first-generate-btn');
-        const loading = document.getElementById('advisor-loading');
-        const content = document.getElementById('advisor-content');
-        const pathsContainer = document.getElementById('paths-list-container');
-        const certsContainer = document.getElementById('certs-list-container');
+document.addEventListener('DOMContentLoaded', () => {
 
-        // Parse and render raw markdown advisor advice
-        const markdownDataEl = document.getElementById('markdown-data');
-        const renderedReportEl = document.getElementById('advisor-rendered-report');
-        if (markdownDataEl && renderedReportEl && typeof marked !== 'undefined') {
-            const rawMarkdown = markdownDataEl.textContent;
-            renderedReportEl.innerHTML = marked.parse(rawMarkdown);
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+
+    function extractSection(md, ...headings) {
+        const lines = md.split('\n');
+        const results = [];
+        let capturing = false;
+
+        for (const line of lines) {
+            const isHeading = line.startsWith('### ') || line.startsWith('## ');
+            if (isHeading) {
+                const matchesTarget = headings.some(h => line.includes(h));
+                if (matchesTarget) { capturing = true; results.push(line); continue; }
+                if (capturing) break;
+            }
+            if (capturing) results.push(line);
+        }
+        return results.join('\n').trim();
+    }
+
+    function renderMarkdown(el, md) {
+        if (!el || !md) return;
+        el.innerHTML = typeof marked !== 'undefined' ? marked.parse(md) : md.replace(/\n/g, '<br>');
+    }
+
+    // ── Score ring animation ─────────────────────────────────────────────────
+    const scoreEl = $('advisor-score-data');
+    const score = scoreEl ? parseInt(scoreEl.textContent.trim()) || 0 : 0;
+
+    function animateScore(target) {
+        const ring = $('score-ring');
+        const numEl = $('score-number');
+        const bar = $('score-bar');
+        const labelEl = $('score-label');
+        if (!ring || !numEl) return;
+
+        const circumference = 238.76;
+        const offset = circumference - (target / 100) * circumference;
+
+        setTimeout(() => {
+            ring.style.strokeDashoffset = offset;
+            if (bar) { bar.style.width = target + '%'; bar.setAttribute('aria-valuenow', target); }
+
+            let current = 0;
+            const step = () => {
+                current = Math.min(current + Math.ceil(target / 60), target);
+                numEl.textContent = current;
+                if (current < target) requestAnimationFrame(step);
+            };
+            requestAnimationFrame(step);
+
+            if (labelEl) {
+                if (target >= 75) { labelEl.textContent = 'Strong'; labelEl.className = 'badge rounded-pill px-3 py-1 bg-success bg-opacity-20 text-success'; }
+                else if (target >= 55) { labelEl.textContent = 'Developing'; labelEl.className = 'badge rounded-pill px-3 py-1 bg-warning bg-opacity-20 text-warning'; }
+                else { labelEl.textContent = 'Needs Work'; labelEl.className = 'badge rounded-pill px-3 py-1 bg-danger bg-opacity-20 text-danger'; }
+            }
+        }, 400);
+    }
+    animateScore(score);
+
+    // ── Render markdown tabs ─────────────────────────────────────────────────
+    const rawEl = $('advisor-raw-markdown');
+    const rawMd = rawEl ? rawEl.textContent.trim() : '';
+
+    if (rawMd) {
+        renderMarkdown($('advisor-rendered-report'), rawMd);
+
+        const planMd = extractSection(rawMd, '30/60/90', 'Action Plan');
+        renderMarkdown($('advisor-plan-body'), planMd || '*Action plan section not found in this report.*');
+
+        const linkedinMd = extractSection(rawMd, 'LinkedIn');
+        renderMarkdown($('advisor-linkedin-body'), linkedinMd || '*LinkedIn section not found.*');
+
+        // Extract headline from LinkedIn section for copy button
+        const headlineMatch = (linkedinMd || rawMd).match(/[""]([^"""]+)[""|]/);
+        const headlineArea = $('linkedin-copy-area');
+        const headlineText = $('headline-text');
+        if (headlineMatch && headlineArea && headlineText) {
+            headlineText.textContent = headlineMatch[1];
+            headlineArea.classList.remove('d-none');
         }
 
-        const triggerGeneration = async () => {
-            if (genBtn) genBtn.disabled = true;
-            if (firstGenBtn) firstGenBtn.disabled = true;
+        const interviewMd = extractSection(rawMd, 'Interview');
+        renderMarkdown($('advisor-interview-body'), interviewMd || '*Interview prep section not found.*');
+    }
 
-            loading.classList.remove('d-none');
-            content.classList.add('d-none');
+    // ── Copy headline ────────────────────────────────────────────────────────
+    const copyBtn = $('copy-headline-btn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+            const text = $('headline-text')?.textContent || '';
+            navigator.clipboard.writeText(text).then(() => {
+                copyBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i>Copied!';
+                setTimeout(() => { copyBtn.innerHTML = '<i class="fa-regular fa-copy me-1"></i>Copy'; }, 2000);
+            });
+        });
+    }
 
-            try {
-                const response = await fetch('/advisor/generate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
+    // ── Generation flow ──────────────────────────────────────────────────────
+    const LOADING_STEPS = [
+        { id: 'step-1', label: 'Reading resume & skills…', delay: 0 },
+        { id: 'step-2', label: 'Evaluating market fit & gaps…', delay: 3500 },
+        { id: 'step-3', label: 'Building 30/60/90-day plan…', delay: 7000 },
+        { id: 'step-4', label: 'Finalizing report…', delay: 10500 },
+    ];
+
+    function startLoadingSteps() {
+        LOADING_STEPS.forEach((step, i) => {
+            const el = $(step.id);
+            if (!el) return;
+            el.querySelector('.fa-circle-notch.fa-spin') && (el.querySelector('.fa-circle-notch').classList.remove('fa-spin'));
+            el.classList.add('opacity-50');
+
+            setTimeout(() => {
+                el.classList.remove('opacity-50');
+                const spinner = el.querySelector('.fa-circle-notch');
+                if (spinner) spinner.classList.add('fa-spin');
+                if (i > 0) {
+                    const prev = $(LOADING_STEPS[i - 1].id);
+                    if (prev) {
+                        const prevSpinner = prev.querySelector('.fa-circle-notch');
+                        const prevCheck = prev.querySelector('.fa-check');
+                        if (prevSpinner) prevSpinner.classList.add('d-none');
+                        if (prevCheck) prevCheck.classList.remove('d-none');
+                        prev.classList.remove('opacity-50');
                     }
-                });
-
-                const result = await response.json();
-                if (result.success) {
-                    // Reload page to reflect new database entries cleanly
-                    window.location.reload();
-                } else {
-                    alert(`Error generating advice: ${result.error}`);
-                    loading.classList.add('d-none');
-                    content.classList.remove('d-none');
-                    if (genBtn) genBtn.disabled = false;
-                    if (firstGenBtn) firstGenBtn.disabled = false;
                 }
-            } catch (err) {
-                console.error(err);
-                alert("Failed to contact advisor engine.");
-                loading.classList.add('d-none');
-                content.classList.remove('d-none');
+            }, step.delay);
+        });
+    }
+
+    async function triggerGeneration() {
+        const genBtn = $('generate-advisor-btn');
+        const firstGenBtn = $('first-generate-btn');
+        const loading = $('advisor-loading');
+        const tabContent = document.getElementById('advisorTabContent');
+        const tabNav = document.getElementById('advisorTabs');
+        const scoreRow = document.querySelector('.glass-card');
+
+        if (genBtn) genBtn.disabled = true;
+        if (firstGenBtn) firstGenBtn.disabled = true;
+        if (loading) loading.classList.remove('d-none');
+        if (tabContent) tabContent.classList.add('d-none');
+        if (tabNav) tabNav.classList.add('d-none');
+        startLoadingSteps();
+
+        try {
+            const response = await fetch('/advisor/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const result = await response.json();
+            if (result.success) {
+                window.location.reload();
+            } else {
+                alert(`Error: ${result.error}`);
+                if (loading) loading.classList.add('d-none');
+                if (tabContent) tabContent.classList.remove('d-none');
+                if (tabNav) tabNav.classList.remove('d-none');
                 if (genBtn) genBtn.disabled = false;
                 if (firstGenBtn) firstGenBtn.disabled = false;
             }
-        };
+        } catch (err) {
+            console.error(err);
+            alert('Failed to contact the advisor engine. Please try again.');
+            if (loading) loading.classList.add('d-none');
+            if (tabContent) tabContent.classList.remove('d-none');
+            if (tabNav) tabNav.classList.remove('d-none');
+            if (genBtn) genBtn.disabled = false;
+            if (firstGenBtn) firstGenBtn.disabled = false;
+        }
+    }
 
-        if (genBtn) genBtn.addEventListener('click', triggerGeneration);
-        if (firstGenBtn) firstGenBtn.addEventListener('click', triggerGeneration);
+    $('generate-advisor-btn')?.addEventListener('click', triggerGeneration);
+    $('first-generate-btn')?.addEventListener('click', triggerGeneration);
+
+    // ── Hover effect on path/cert cards ─────────────────────────────────────
+    document.querySelectorAll('.advisor-path-card, .advisor-cert-card').forEach(card => {
+        card.addEventListener('mouseenter', () => card.style.background = 'rgba(255,255,255,0.06)');
+        card.addEventListener('mouseleave', () => card.style.background = 'rgba(255,255,255,0.03)');
     });
+});
 </script>
+
+<style>
+.advisor-tab { background: rgba(255,255,255,0.04); color: #94a3b8; border: 1px solid rgba(255,255,255,0.08); }
+.advisor-tab:hover { background: rgba(255,255,255,0.08); color: #e2e8f0; }
+.advisor-tab.active { background: linear-gradient(135deg,#6366f1,#22d3ee) !important; color: #fff !important; border-color: transparent !important; }
+.advisor-report-body h3 { color: #e2e8f0; font-size: 1rem; margin-top: 1.4rem; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.3rem; }
+.advisor-report-body strong { color: #e2e8f0; }
+.advisor-report-body ul { padding-left: 1.2rem; }
+.advisor-report-body li { margin-bottom: 0.35rem; }
+.advisor-report-body p { margin-bottom: 0.75rem; }
+.advisor-report-body::-webkit-scrollbar { width: 5px; }
+.advisor-report-body::-webkit-scrollbar-track { background: transparent; }
+.advisor-report-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+</style>
 {% endblock %}

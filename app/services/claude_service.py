@@ -34,90 +34,111 @@ class ClaudeService:
         try:
             resume = self.resume_repo.get_latest_resume(user_id)
             skills = self.resume_repo.get_skills_by_user(user_id)
-            
+
             if not resume:
                 return {
                     "success": False,
                     "error": "Please upload a resume first before requesting career advice."
                 }
-                
+
             skills_str = ", ".join([s['skill_name'] for s in skills])
             resume_text = resume.get('raw_text', '')
-            
-            # Format Prompt
+
             system_prompt = (
                 "You are an expert Senior Career Advisor, Technical Recruiter, and Full Stack Architect. "
                 "Analyze the user's CV and skill profile. "
-                "Provide detailed, high-impact career advice in valid JSON format. "
-                "The JSON object must contain exactly three keys:\n"
-                "1. 'feedback_text': A highly detailed, thorough, and in-depth Markdown document (at least 600-800 words) with bullet points, bold key terms, and the following subheadings:\n"
-                "   - '### 🌟 Profile Summary': Provide a comprehensive analysis of their top strengths, hybrid value proposition, and unique competitive advantages.\n"
-                "   - '### 📈 Areas of Improvement': Detail critical gaps in their experience, specific frameworks/tools they should master, portfolio projects they should build, and how to improve their CV bullet points.\n"
-                "   - '### 🚀 Strategic Guidance': Provide actionable guidance on how to package and position their profile in the current job market, interview preparation advice, and strategic career roadmap details.\n"
-                "   - '### 💼 LinkedIn Optimization': Specific, actionable tips to improve their LinkedIn headline, about section, featured projects, and experience descriptions to attract top recruiters.\n"
-                "2. 'career_paths': An array of 3 to 5 highly specific, modern job/career pathways (e.g., 'Cloud-Native Data Engineer', 'AI-Driven Product Manager').\n"
-                "3. 'recommended_certifications': An array of 3 to 5 professional certifications or courses that will maximize their chances of employment.\n\n"
-                "Crucial: Avoid brief summaries. Provide comprehensive, extensive, and actionable paragraphs under each heading, using bolding (**text**) and bullet lists extensively so it renders beautifully.\n\n"
-                "Example JSON response structure:\n"
-                "{\n"
-                "  \"feedback_text\": \"### 🌟 Profile Summary\\nYour profile is...\\n\\n### 📈 Areas of Improvement\\n- **Specialization**: ...\",\n"
-                "  \"career_paths\": [\"Role A\", \"Role B\", \"Role C\"],\n"
-                "  \"recommended_certifications\": [\"Cert A\", \"Cert B\", \"Cert C\"]\n"
-                "}"
+                "Provide detailed, high-impact career advice in valid JSON format with NO surrounding text or markdown blocks.\n\n"
+                "The JSON object must contain exactly FIVE keys:\n\n"
+
+                "1. 'feedback_text': A detailed Markdown document (750-950 words) with these sections:\n"
+                "   - '### 🌟 Profile Summary': Comprehensive analysis of their top strengths, hybrid value proposition, and 2-3 specific signals/accomplishments from their resume.\n"
+                "   - '### 🎯 Skill Gap Analysis': The top 4-5 critical missing skills with specific WHY each matters now (e.g., 'Missing: **Kubernetes** — Container orchestration is expected in 85%+ of senior cloud roles in 2026').\n"
+                "   - '### 📈 Areas of Improvement': Specific frameworks/tools to master, portfolio projects to build, and how to rewrite CV bullets using the STAR method.\n"
+                "   - '### 🗓️ 30/60/90 Day Action Plan': Three labeled phases — **Month 1 (Quick Wins)**, **Month 2 (Momentum)**, **Month 3 (Launch)** — each with 3-4 concrete, specific actions.\n"
+                "   - '### 🚀 Strategic Guidance': Market positioning, salary negotiation leverage points, company targeting strategy, and how to stand out in technical interviews.\n"
+                "   - '### 💼 LinkedIn Optimization': A SPECIFIC ready-to-use LinkedIn headline in quotes, a 2-sentence About opener, and 3 featured project ideas.\n"
+                "   - '### 🎤 Interview Prep': Top 3 behavioral questions likely asked for their target roles and a 3-bullet STAR answer framework for each.\n\n"
+
+                "2. 'career_paths': An array of 3-4 objects, each with:\n"
+                "   - 'title': Specific modern job title\n"
+                "   - 'demand': 'High', 'Medium', or 'Low' based on 2026 market demand\n"
+                "   - 'salary_range': Estimated range like '$85k-$130k USD'\n"
+                "   - 'why_fit': One sentence explaining why this role fits their profile\n\n"
+
+                "3. 'recommended_certifications': An array of 3-4 objects, each with:\n"
+                "   - 'name': Full certification or course name\n"
+                "   - 'platform': Provider (e.g. 'AWS', 'Google Cloud', 'Coursera', 'Linux Foundation', 'Microsoft')\n"
+                "   - 'duration': Study time like '2-3 months'\n"
+                "   - 'priority': 'High', 'Medium', or 'Low'\n"
+                "   - 'reason': One sentence why this cert is critical for their goals\n\n"
+
+                "4. 'profile_score': An integer 0-100 representing overall job-market readiness. "
+                "Score components: skill breadth (20%), skill depth (25%), experience quality (25%), "
+                "portfolio/projects visibility (15%), soft skills signals (15%).\n\n"
+
+                "5. 'top_skill_gaps': An array of 3-4 objects, each with:\n"
+                "   - 'skill': The missing skill name\n"
+                "   - 'urgency': 'Critical', 'Moderate', or 'Low'\n"
+                "   - 'reason': One sentence explaining market impact of this gap\n\n"
+
+                "Return ONLY valid JSON. No markdown code fences, no preamble."
             )
-            
+
             user_prompt = (
                 f"Candidate Skills: {skills_str}\n\n"
-                f"Candidate Resume Text snippet:\n{resume_text[:8000]}"
+                f"Candidate Resume Text:\n{resume_text[:8000]}"
             )
-            
+
             if self.client:
-                # Call Claude API (using claude-3-haiku-20240307 for fast and cost-effective recommendation logic)
                 response = self.client.messages.create(
                     model="claude-haiku-4-5-20251001",
-                    max_tokens=3000,
+                    max_tokens=4500,
                     temperature=0.3,
                     system=system_prompt,
                     messages=[
                         {"role": "user", "content": user_prompt}
                     ]
                 )
-                
+
                 response_text = response.content[0].text
-                
+
                 try:
-                    # Parse the JSON output from Claude
-                    # Sometimes LLMs wrap response in ```json ``` blocks. Clean it up.
                     clean_json = response_text
                     if "```json" in clean_json:
                         clean_json = clean_json.split("```json")[1].split("```")[0]
                     elif "```" in clean_json:
                         clean_json = clean_json.split("```")[1].split("```")[0]
-                        
+
                     parsed_response = json.loads(clean_json.strip())
-                    
+
                     feedback = parsed_response.get('feedback_text', 'No feedback provided.')
                     paths = parsed_response.get('career_paths', [])
                     certs = parsed_response.get('recommended_certifications', [])
-                    
-                    # Store feedback in database
-                    self.job_repo.save_career_feedback(user_id, feedback, paths, certs)
-                    
+                    profile_score = parsed_response.get('profile_score', 0)
+                    top_skill_gaps = parsed_response.get('top_skill_gaps', [])
+
+                    # Embed profile_score and top_skill_gaps into feedback_text as a hidden
+                    # HTML comment so they survive the single-column DB schema without changes.
+                    meta_comment = f"\n<!--advisor_meta:{json.dumps({'profile_score': profile_score, 'top_skill_gaps': top_skill_gaps})}-->"
+                    feedback_with_meta = feedback + meta_comment
+
+                    self.job_repo.save_career_feedback(user_id, feedback_with_meta, paths, certs)
+
                     return {
                         "success": True,
                         "feedback_text": feedback,
                         "career_paths": paths,
-                        "recommended_certifications": certs
+                        "recommended_certifications": certs,
+                        "profile_score": profile_score,
+                        "top_skill_gaps": top_skill_gaps,
                     }
-                    
+
                 except (json.JSONDecodeError, KeyError) as parse_error:
                     logger.error(f"Failed to parse Claude JSON response: {response_text}. Error: {str(parse_error)}")
-                    # Fallback if JSON parsing fails but we got text
                     return self._generate_mock_advice(skills, resume_text, user_id)
             else:
-                # Fallback to local mock generator
                 return self._generate_mock_advice(skills, resume_text, user_id)
-                
+
         except Exception as e:
             logger.error(f"Error in Claude Career Advisor: {str(e)}")
             return {"success": False, "error": str(e)}
@@ -298,58 +319,183 @@ class ClaudeService:
     def _generate_mock_advice(self, skills: list, resume_text: str, user_id: str) -> dict:
         """Generates high-quality mock career advice when Anthropic API is disabled."""
         skill_names = [s['skill_name'].lower() for s in skills]
-        
-        # Simple heuristic analysis
+
         if any(s in skill_names for s in ['python', 'scikit-learn', 'pandas', 'numpy', 'machine learning']):
             feedback = (
-                "### Profile Assessment\n"
+                "### 🌟 Profile Summary\n"
                 "Your resume highlights a strong foundation in **Data Science and Machine Learning**. "
-                "With python skills and analytics libraries (Pandas, NumPy, Scikit-learn), you are well-positioned for data engineering and junior ML roles.\n\n"
-                "### Areas of Improvement\n"
-                "To stand out in the current job market, you should expand your depth in cloud architectures (AWS/GCP deployment patterns) "
-                "and deep learning packages. Make sure your portfolio projects include productionizing models, not just running Jupyter notebooks.\n\n"
+                "With Python and analytics libraries (Pandas, NumPy, Scikit-learn), you are well-positioned for data engineering and junior ML roles. "
+                "Your quantitative background is a genuine competitive advantage.\n\n"
+                "### 🎯 Skill Gap Analysis\n"
+                "- **Missing: MLOps / Model Serving** — 80%+ of ML Engineer roles now require experience deploying models via FastAPI, BentoML, or Triton.\n"
+                "- **Missing: Cloud Platforms (AWS/GCP)** — Cloud-native ML pipelines (SageMaker, Vertex AI) are expected for any senior role.\n"
+                "- **Missing: SQL / Data Warehousing** — Snowflake and BigQuery skills appear in 70% of data-focused job descriptions.\n\n"
+                "### 📈 Areas of Improvement\n"
+                "- Productionize at least one model end-to-end: training → Docker container → REST API → monitoring.\n"
+                "- Add a Kaggle competition or open-source contribution to demonstrate applied ML skills.\n"
+                "- Rewrite CV bullets using STAR format: 'Built X using Y, resulting in Z% improvement.'\n\n"
+                "### 🗓️ 30/60/90 Day Action Plan\n"
+                "**Month 1 (Quick Wins):**\n"
+                "- Deploy one existing project as a public REST API on Render or Railway.\n"
+                "- Sign up for AWS Free Tier and complete the SageMaker getting-started tutorial.\n"
+                "- Update LinkedIn headline and About section.\n\n"
+                "**Month 2 (Momentum):**\n"
+                "- Build and publish an end-to-end ML project on GitHub with a detailed README.\n"
+                "- Start the Google Cloud Professional Data Engineer certification prep.\n\n"
+                "**Month 3 (Launch):**\n"
+                "- Apply to 15-20 targeted roles with a tailored cover letter.\n"
+                "- Reach out to 3 data engineers/scientists on LinkedIn for informational interviews.\n\n"
+                "### 🚀 Strategic Guidance\n"
+                "Target mid-size companies where a generalist data scientist can have outsized impact. "
+                "Emphasize Python fluency and end-to-end ownership in interviews. "
+                "Negotiate salary using competing offers — the ML market remains strong for specialists.\n\n"
                 "### 💼 LinkedIn Optimization\n"
-                "- **Headline:** Update to 'Data Scientist | Machine Learning Engineer | Python & Cloud Analytics'\n"
-                "- **Featured Section:** Pin a link to a deployed machine learning project on GitHub with a solid README."
+                "- **Headline:** \"Data Scientist | ML Engineer | Python · Scikit-learn · Cloud Analytics\"\n"
+                "- **About opener:** 'I build data pipelines and machine learning systems that turn raw data into business decisions. Focused on end-to-end ownership from model training to production deployment.'\n"
+                "- **Featured:** Pin your best deployed project with a live demo link.\n\n"
+                "### 🎤 Interview Prep\n"
+                "**Q: 'Tell me about a time you improved a model's performance.'**\n"
+                "- Situation: Describe the baseline model and metric\n"
+                "- Task: What you were asked to improve\n"
+                "- Action: Feature engineering / hyperparameter tuning steps\n"
+                "- Result: % improvement achieved\n"
             )
-            paths = ["Data Scientist (Cloud/MLOps)", "Machine Learning Engineer", "Business Intelligence Analyst"]
-            certs = ["AWS Certified Machine Learning - Specialty", "Google Cloud Professional Data Engineer", "TensorFlow Developer Certificate"]
+            paths = [
+                {"title": "Machine Learning Engineer", "demand": "High", "salary_range": "$110k-$160k USD", "why_fit": "Strong Python and ML library foundation matches core requirements."},
+                {"title": "Data Scientist (Cloud/MLOps)", "demand": "High", "salary_range": "$95k-$140k USD", "why_fit": "Analytics background translates directly to data science roles at tech companies."},
+                {"title": "Business Intelligence Analyst", "demand": "Medium", "salary_range": "$75k-$105k USD", "why_fit": "Python + statistics skills are directly applicable to BI and analytics engineering."},
+            ]
+            certs = [
+                {"name": "AWS Certified Machine Learning – Specialty", "platform": "AWS", "duration": "3-4 months", "priority": "High", "reason": "Most in-demand cloud ML cert; opens doors to senior ML Engineer roles."},
+                {"name": "Google Cloud Professional Data Engineer", "platform": "Google Cloud", "duration": "2-3 months", "priority": "High", "reason": "GCP BigQuery and Dataflow skills are heavily requested in data pipelines roles."},
+                {"name": "TensorFlow Developer Certificate", "platform": "Google / Coursera", "duration": "2 months", "priority": "Medium", "reason": "Validates deep learning skills and signals commitment to the ML specialization."},
+            ]
+            profile_score = 58
+            top_skill_gaps = [
+                {"skill": "MLOps / Model Deployment", "urgency": "Critical", "reason": "Required to move from junior data science to mid-level ML engineering roles."},
+                {"skill": "Cloud Platforms (AWS or GCP)", "urgency": "Critical", "reason": "Cloud-native pipelines are expected for 85%+ of senior data/ML roles in 2026."},
+                {"skill": "SQL & Data Warehousing", "urgency": "Moderate", "reason": "Snowflake/BigQuery appear in 70% of data-focused job descriptions."},
+            ]
         elif any(s in skill_names for s in ['javascript', 'typescript', 'react', 'html', 'css', 'node.js']):
             feedback = (
-                "### Profile Assessment\n"
+                "### 🌟 Profile Summary\n"
                 "You demonstrate strong capability in **Modern Web Development**. "
-                "Your skills with UI design, React/JavaScript, and front-end architectures match well with full-stack and frontend development pathways.\n\n"
-                "### Areas of Improvement\n"
-                "We recommend mastering state-management patterns (Redux/Zustand) and backend integration with SQL databases. "
-                "Adding CI/CD pipeline automation to your github repositories will show hiring managers that you understand engineering lifecycle practices.\n\n"
+                "React/JavaScript skills with UI architecture experience match well with full-stack and frontend pathways. "
+                "Your component-building experience is a genuine market asset.\n\n"
+                "### 🎯 Skill Gap Analysis\n"
+                "- **Missing: TypeScript** — TypeScript is now required in 80% of frontend roles at companies above 50 engineers.\n"
+                "- **Missing: Testing (Jest / Cypress)** — Automated testing is a hiring bar for senior frontend positions.\n"
+                "- **Missing: CI/CD Pipelines** — GitHub Actions or CircleCI experience signals production engineering maturity.\n\n"
+                "### 📈 Areas of Improvement\n"
+                "- Migrate an existing React project to TypeScript with strict mode enabled.\n"
+                "- Add Jest unit tests and a Cypress E2E test suite to your portfolio project.\n"
+                "- Add CI/CD pipeline configuration to your GitHub repos (build + test on PR).\n\n"
+                "### 🗓️ 30/60/90 Day Action Plan\n"
+                "**Month 1 (Quick Wins):**\n"
+                "- Convert one React project to TypeScript.\n"
+                "- Update LinkedIn headline and optimize featured section.\n"
+                "- Write 5 Jest unit tests for an existing component.\n\n"
+                "**Month 2 (Momentum):**\n"
+                "- Build a full-stack project (React + Node.js + PostgreSQL) and deploy it.\n"
+                "- Add GitHub Actions CI pipeline to your main portfolio repo.\n\n"
+                "**Month 3 (Launch):**\n"
+                "- Apply to 20 targeted frontend/full-stack roles.\n"
+                "- Do 3 mock technical interviews on Pramp or interviewing.io.\n\n"
+                "### 🚀 Strategic Guidance\n"
+                "Target product companies over agencies for better comp and growth. "
+                "Frame yourself as performance-focused: mention Core Web Vitals and accessibility in interviews. "
+                "Salary negotiation tip: full-stack ability (even basic backend) commands a 15-20% premium over pure frontend.\n\n"
                 "### 💼 LinkedIn Optimization\n"
-                "- **Headline:** Use 'Frontend Engineer | React & TypeScript Developer | Building Modern UIs'\n"
-                "- **About Section:** Highlight your focus on performance optimization, responsive design, and user experience."
+                "- **Headline:** \"Frontend Engineer | React · TypeScript · Node.js | Building Fast, Accessible UIs\"\n"
+                "- **About opener:** 'I craft high-performance web experiences using React and TypeScript, with a focus on component architecture, accessibility, and measurable Core Web Vitals improvements.'\n"
+                "- **Featured:** Pin your best deployed app with screenshots and a GitHub link.\n\n"
+                "### 🎤 Interview Prep\n"
+                "**Q: 'How do you optimize React performance?'**\n"
+                "- Mention: React.memo, useMemo, useCallback for unnecessary re-renders\n"
+                "- Mention: Code splitting with React.lazy and dynamic imports\n"
+                "- Mention: Profiler API to identify bottlenecks\n"
+                "- Result: 'Reduced initial load time by 40% on a previous project'\n"
             )
-            paths = ["Senior Frontend Engineer", "Full Stack Web Developer (MERN)", "UX/UI Design Technologist"]
-            certs = ["Meta Front-End Developer Professional Certificate", "AWS Certified Developer", "Certified ScrumMaster (CSM)"]
+            paths = [
+                {"title": "Senior Frontend Engineer", "demand": "High", "salary_range": "$100k-$155k USD", "why_fit": "React and component architecture skills directly match senior frontend requirements."},
+                {"title": "Full Stack Web Developer (MERN)", "demand": "High", "salary_range": "$90k-$135k USD", "why_fit": "JavaScript breadth enables full-stack roles with a minimal Node.js ramp-up."},
+                {"title": "UX/UI Design Technologist", "demand": "Medium", "salary_range": "$80k-$115k USD", "why_fit": "Frontend skills combined with design sensibility open hybrid design-engineer roles."},
+            ]
+            certs = [
+                {"name": "Meta Front-End Developer Professional Certificate", "platform": "Coursera", "duration": "7 months", "priority": "High", "reason": "Industry-recognized credential that validates React and modern frontend practices."},
+                {"name": "AWS Certified Developer – Associate", "platform": "AWS", "duration": "2-3 months", "priority": "Medium", "reason": "Adds cloud deployment skills that command a 20% salary premium for frontend engineers."},
+                {"name": "Certified ScrumMaster (CSM)", "platform": "Scrum Alliance", "duration": "1-2 weeks", "priority": "Low", "reason": "Agile certification valued at product companies hiring senior engineers."},
+            ]
+            profile_score = 62
+            top_skill_gaps = [
+                {"skill": "TypeScript", "urgency": "Critical", "reason": "Required in 80% of frontend roles at established tech companies in 2026."},
+                {"skill": "Automated Testing (Jest/Cypress)", "urgency": "Critical", "reason": "Hard requirement for senior frontend positions at most product companies."},
+                {"skill": "CI/CD Pipelines", "urgency": "Moderate", "reason": "Signals production maturity; commonly assessed in senior-level technical screens."},
+            ]
         else:
             feedback = (
-                "### Profile Assessment\n"
-                "Your resume shows a versatile academic and technical foundation. "
-                "To optimize your career trajectory, we recommend narrowing your target roles to backend software engineering or technology consulting.\n\n"
-                "### Areas of Improvement\n"
-                "Develop clean API programming skills (Flask/FastAPI) and version control proficiency. "
-                "Ensure your CV includes active GitHub links showcasing complete projects with comprehensive README files.\n\n"
+                "### 🌟 Profile Summary\n"
+                "Your resume shows a versatile technical foundation. "
+                "To maximize career trajectory, narrow your target to backend software engineering or cloud consulting where generalist skills translate to quick impact.\n\n"
+                "### 🎯 Skill Gap Analysis\n"
+                "- **Missing: REST API Development** — Flask/FastAPI or Express are baseline expectations for any backend role.\n"
+                "- **Missing: Docker / Containerization** — Container skills appear in 75% of backend and DevOps job descriptions.\n"
+                "- **Missing: Database Proficiency (SQL/NoSQL)** — PostgreSQL or MongoDB experience is expected for full-stack and backend roles.\n\n"
+                "### 📈 Areas of Improvement\n"
+                "- Build and deploy a REST API project — even a simple CRUD app shows real engineering discipline.\n"
+                "- Add a Dockerfile and docker-compose.yml to your main GitHub project.\n"
+                "- Rewrite CV bullets using STAR format with quantifiable outcomes.\n\n"
+                "### 🗓️ 30/60/90 Day Action Plan\n"
+                "**Month 1 (Quick Wins):**\n"
+                "- Build a Flask or FastAPI REST API and deploy it to Render (free tier).\n"
+                "- Update GitHub profile with a pinned repo showcase and filled-out README.\n"
+                "- Update LinkedIn headline.\n\n"
+                "**Month 2 (Momentum):**\n"
+                "- Add Docker containerization to your project and push to Docker Hub.\n"
+                "- Complete the Google IT Support or CompTIA A+ cert prep.\n\n"
+                "**Month 3 (Launch):**\n"
+                "- Apply to 20 junior backend or cloud support roles.\n"
+                "- Attend one tech meetup or virtual networking event.\n\n"
+                "### 🚀 Strategic Guidance\n"
+                "Start by targeting companies that value versatility over deep specialization: startups, consultancies, and mid-size SaaS companies. "
+                "Use your breadth as a selling point in interviews — you can contribute across the stack from day one.\n\n"
                 "### 💼 LinkedIn Optimization\n"
-                "- **Headline:** Craft a clear headline like 'Software Developer | Backend Systems & API Design'\n"
-                "- **Experience:** Focus on quantifiable achievements and list the core technologies you used in each role."
+                "- **Headline:** \"Software Developer | Backend APIs · Python · Cloud Infrastructure\"\n"
+                "- **About opener:** 'I build backend systems and APIs that are reliable, testable, and easy to maintain. Comfortable working across the stack and contributing from day one in fast-moving teams.'\n"
+                "- **Featured:** Pin your best GitHub project with a live link and clear README.\n\n"
+                "### 🎤 Interview Prep\n"
+                "**Q: 'Tell me about a challenging technical problem you solved.'**\n"
+                "- Situation: Describe a real project obstacle\n"
+                "- Task: What you were responsible for\n"
+                "- Action: Specific debugging/design steps you took\n"
+                "- Result: The outcome and what you learned\n"
             )
-            paths = ["Backend Software Engineer", "Cloud Systems Administrator", "Technical Solutions Consultant"]
-            certs = ["CompTIA Security+", "Google IT Support Professional Certificate", "Python Institute PCEP Certification"]
+            paths = [
+                {"title": "Backend Software Engineer", "demand": "High", "salary_range": "$85k-$125k USD", "why_fit": "General programming skills are foundational; Python/API experience accelerates backend ramp-up."},
+                {"title": "Cloud Systems Administrator", "demand": "Medium", "salary_range": "$75k-$110k USD", "why_fit": "Technical breadth suits cloud ops and infrastructure support roles well."},
+                {"title": "Technical Solutions Consultant", "demand": "Medium", "salary_range": "$80k-$120k USD", "why_fit": "Versatile technical profile matches consulting roles that bridge code and client communication."},
+            ]
+            certs = [
+                {"name": "CompTIA Security+", "platform": "CompTIA", "duration": "2-3 months", "priority": "High", "reason": "Widely recognized cert that opens doors to cloud, IT, and security-adjacent roles."},
+                {"name": "Google IT Support Professional Certificate", "platform": "Coursera", "duration": "3-4 months", "priority": "High", "reason": "Entry-level credential that demonstrates systems and networking fundamentals to employers."},
+                {"name": "Python Institute PCEP Certification", "platform": "Python Institute", "duration": "1-2 months", "priority": "Medium", "reason": "Validates Python fundamentals for roles that list Python as a requirement."},
+            ]
+            profile_score = 42
+            top_skill_gaps = [
+                {"skill": "REST API Development", "urgency": "Critical", "reason": "Baseline expectation for any backend or full-stack engineering role."},
+                {"skill": "Docker / Containerization", "urgency": "Critical", "reason": "Appears in 75% of backend job descriptions; required for most DevOps-adjacent roles."},
+                {"skill": "SQL / Database Design", "urgency": "Moderate", "reason": "Database skills are expected for virtually all application-layer engineering roles."},
+            ]
 
-        # Store feedback in database
-        self.job_repo.save_career_feedback(user_id, feedback, paths, certs)
+        meta_comment = f"\n<!--advisor_meta:{json.dumps({'profile_score': profile_score, 'top_skill_gaps': top_skill_gaps})}-->"
+        self.job_repo.save_career_feedback(user_id, feedback + meta_comment, paths, certs)
 
         return {
             "success": True,
             "feedback_text": feedback,
             "career_paths": paths,
             "recommended_certifications": certs,
+            "profile_score": profile_score,
+            "top_skill_gaps": top_skill_gaps,
             "is_mock": True
         }
