@@ -47,7 +47,7 @@ class ClaudeService:
             system_prompt = (
                 "You are an expert Senior Career Advisor, Executive Recruiter, and Career Transition Strategist spanning ALL INDUSTRIES (Tech, Finance, Healthcare, Arts, Business, etc.).\n\n"
 
-                "CRUCIAL INSTRUCTION: The candidate may belong to ANY industry. DO NOT assume they are in IT/Software unless their resume explicitly shows tech skills. Provide industry-specific advice (e.g., for a nurse, provide healthcare advice; for a marketer, marketing advice).\n\n"
+                "CRUCIAL INSTRUCTION: The candidate may belong to ANY industry. DO NOT assume they are in IT/Software unless their resume explicitly shows tech skills. Provide strictly industry-specific advice (e.g., for a nurse, provide healthcare advice; for a marketer, marketing advice). If the CV is completely unrelated to IT, your entire response (career_paths, certs, gaps) MUST be exclusively about their specific non-IT industry.\n\n"
 
                 "## YOUR FIRST JOB: INFER WHAT THIS PERSON WANTS TO BECOME\n"
                 "Before giving any advice, read the resume like a detective. Look for:\n"
@@ -73,7 +73,7 @@ class ClaudeService:
                 "   - 'target_role': The specific role or domain they are aiming for (e.g. 'Financial Analyst', 'Marketing Manager', 'AI/ML Engineer', 'Clinical Researcher', 'Project Manager')\n"
                 "   - 'target_domain': The broader field (e.g. 'Finance', 'Healthcare', 'Engineering', 'Marketing & Sales', 'IT & Software')\n"
                 "   - 'confidence': 'High', 'Medium', or 'Low' — how clearly the resume signals this direction\n"
-                "   - 'signals': An array of 2-3 short strings describing the specific resume evidence that led to this inference (e.g. 'Studied Computer Science with AI electives', 'Built 3 personal ML projects on GitHub', 'Self-taught TensorFlow outside of job scope')\n"
+                "   - 'signals': An array of 2-3 short strings describing the specific resume evidence that led to this inference (e.g. '5 years of B2B sales experience', 'Degree in Nursing but took admin courses', 'Managed cross-functional projects')\n"
                 "   - 'aspiration_summary': One sentence describing what this person is trying to become and why their current background is a useful starting point\n\n"
 
                 "2. 'transition_type': A string — exactly one of: 'Growth', 'Pivot', or 'Entry'\n"
@@ -208,9 +208,9 @@ class ClaudeService:
             "You are an expert ATS (Applicant Tracking System) parser. "
             "Analyze the candidate's resume text and extract:\n"
             "1. A comprehensive list of skills. Crucially, capture both explicitly mentioned skills "
-            "and contextually implied skills (e.g., if they build Flask or Django apps, they have Python; "
-            "if they build UI components with React, they have JavaScript and CSS; if they design schemas "
-            "in PostgreSQL, they have SQL/Database Design). Categorize each skill as 'technical' or 'soft'.\n"
+            "and contextually implied skills (e.g., if they manage ad campaigns, they have Digital Marketing; "
+            "if they handled patient triage, they have Clinical Care; if they design UI with React, they have JavaScript). "
+            "Categorize each skill as 'technical' (industry-specific hard skills) or 'soft' (interpersonal/general).\n"
             "2. Structured section data:\n"
             "   - 'education': List degrees, schools, and years.\n"
             "   - 'experience': List jobs, companies, dates, and key projects/roles.\n"
@@ -219,6 +219,7 @@ class ClaudeService:
             "The JSON object must contain exactly two keys:\n"
             "- 'skills': An array of objects, each with 'skill_name' (e.g., 'Python', 'React', 'Problem Solving') and 'skill_type' ('technical' or 'soft').\n"
             "- 'extracted_data': An object with arrays for 'education', 'experience', and 'certifications'.\n\n"
+            "CRITICAL: The candidate might be from ANY field (Healthcare, Marketing, Finance, Education, Engineering, etc.). Do NOT assume they are in IT/Software unless explicit tech skills are found. Extract skills relevant to their actual domain.\n\n"
             "Example JSON response structure:\n"
             "{\n"
             "  \"skills\": [\n"
@@ -316,13 +317,13 @@ class ClaudeService:
             "{\n"
             "  \"role_matches\": [\n"
             "    {\n"
-            "      \"id\": \"software_engineer\",\n"
-            "      \"essential_skills\": [\"Python\", \"REST APIs\", \"Docker\", \"Git\"],\n"
-            "      \"optional_skills\": [\"AWS\", \"Kubernetes\"],\n"
-            "      \"matched_essential\": [\"Python\", \"Git\"],\n"
-            "      \"matched_optional\": [\"AWS\"],\n"
-            "      \"missing_essential\": [\"REST APIs\", \"Docker\"],\n"
-            "      \"missing_optional\": [\"Kubernetes\"],\n"
+            "      \"id\": \"project_manager\",\n"
+            "      \"essential_skills\": [\"Project Management\", \"Agile\", \"Communication\"],\n"
+            "      \"optional_skills\": [\"Scrum\", \"Risk Management\"],\n"
+            "      \"matched_essential\": [\"Project Management\", \"Communication\"],\n"
+            "      \"matched_optional\": [\"Scrum\"],\n"
+            "      \"missing_essential\": [\"Agile\"],\n"
+            "      \"missing_optional\": [\"Risk Management\"],\n"
             "      \"match_percentage\": 60.0,\n"
             "      \"is_related\": true\n"
             "    }\n"
@@ -363,7 +364,68 @@ class ClaudeService:
         """Generates high-quality mock career advice when Anthropic API is disabled."""
         skill_names = [s['skill_name'].lower() for s in skills]
 
-        if any(s in skill_names for s in ['python', 'scikit-learn', 'pandas', 'numpy', 'machine learning']):
+        if any(s in skill_names for s in ['marketing', 'sales', 'seo', 'management', 'business', 'finance', 'accounting', 'hr', 'human resources']):
+            feedback = (
+                "### 🌟 Profile Summary\n"
+                "Your resume highlights a strong foundation in **Business and Operations**. "
+                "With skills in management and business strategy, you are well-positioned for roles in project management, marketing, or business analysis.\n\n"
+                "### 🎯 Skill Gap Analysis\n"
+                "- **Missing: Data Analytics** — Modern business roles increasingly require data-driven decision making (Excel, Power BI, or basic SQL).\n"
+                "- **Missing: Agile/Scrum Methodologies** — Understanding agile workflows is essential for cross-functional management roles.\n"
+                "- **Missing: CRM/ERP Systems** — Experience with Salesforce or SAP is often a baseline expectation.\n\n"
+                "### 📈 Areas of Improvement\n"
+                "- Master advanced Excel functions (Pivot Tables, VLOOKUP) and basic data visualization.\n"
+                "- Gain familiarity with project management software like Jira, Asana, or Monday.com.\n"
+                "- Rewrite CV bullets to focus on quantifiable business outcomes (e.g., 'Increased sales by X%', 'Reduced costs by Y%').\n\n"
+                "### 🗓️ 30/60/90 Day Action Plan\n"
+                "**Month 1 (Quick Wins):**\n"
+                "- Complete a specialized course in Excel or Power BI.\n"
+                "- Update your LinkedIn headline to target specific business domains.\n\n"
+                "**Month 2 (Momentum):**\n"
+                "- Obtain a foundational project management or agile certification.\n"
+                "- Reach out to 3 professionals in your target industry for informational interviews.\n\n"
+                "**Month 3 (Launch):**\n"
+                "- Apply to 15-20 targeted roles tailoring your resume to the specific job description.\n"
+                "- Practice behavioral interviews using the STAR method.\n\n"
+                "### 🚀 Strategic Guidance\n"
+                "Target roles where your communication and organizational skills can bridge the gap between technical teams and business stakeholders. "
+                "Highlight your ability to manage projects and drive results.\n\n"
+                "### 💼 LinkedIn Optimization\n"
+                "- **Headline:** \"Business Analyst | Project Manager | Operations & Strategy\"\n"
+                "- **About opener:** 'Results-driven professional with a passion for optimizing business operations and leading cross-functional teams to success.'\n"
+                "- **Featured:** Link a case study, article, or business presentation you've created.\n\n"
+                "### 🎤 Interview Prep\n"
+                "**Q: 'Describe a time you improved a business process.'**\n"
+                "- Situation: The inefficiency you noticed\n"
+                "- Task: Your goal to streamline it\n"
+                "- Action: The new process or tool you implemented\n"
+                "- Result: Time or money saved\n"
+            )
+            paths = [
+                {"title": "Business Analyst", "demand": "High", "salary_range": "$70k-$105k USD", "why_fit": "Your background aligns with analyzing processes and improving operations."},
+                {"title": "Project Manager", "demand": "High", "salary_range": "$80k-$120k USD", "why_fit": "Strong organizational skills make you a good fit for leading projects."},
+                {"title": "Digital Marketing Specialist", "demand": "Medium", "salary_range": "$60k-$90k USD", "why_fit": "Transferable communication skills are excellent for marketing roles."},
+            ]
+            certs = [
+                {"name": "Project Management Professional (PMP)", "platform": "PMI", "duration": "3-6 months", "priority": "High", "reason": "The gold standard for project managers."},
+                {"name": "Google Data Analytics Professional Certificate", "platform": "Coursera", "duration": "3-4 months", "priority": "Medium", "reason": "Adds highly sought-after analytical skills to your business profile."},
+                {"name": "Salesforce Administrator", "platform": "Salesforce", "duration": "2 months", "priority": "Medium", "reason": "Validates proficiency with the world's leading CRM platform."},
+            ]
+            profile_score = 65
+            top_skill_gaps = [
+                {"skill": "Data Analytics (Excel/SQL)", "urgency": "Critical", "reason": "Essential for making data-driven business decisions."},
+                {"skill": "Agile/Scrum", "urgency": "Moderate", "reason": "Many modern business teams operate on Agile frameworks."},
+                {"skill": "CRM/ERP Software", "urgency": "Moderate", "reason": "Standard requirement for sales, marketing, and operations roles."},
+            ]
+            career_aspiration = {
+                "target_role": "Business Operations Manager",
+                "target_domain": "Business & Management",
+                "confidence": "High",
+                "signals": ["General business skills", "Management focus"],
+                "aspiration_summary": "Looking to transition into a management or analytical business track."
+            }
+            transition_type = "Growth"
+        elif any(s in skill_names for s in ['python', 'scikit-learn', 'pandas', 'numpy', 'machine learning']):
             feedback = (
                 "### 🌟 Profile Summary\n"
                 "Your resume highlights a strong foundation in **Data Science and Machine Learning**. "
@@ -419,6 +481,14 @@ class ClaudeService:
                 {"skill": "Cloud Platforms (AWS or GCP)", "urgency": "Critical", "reason": "Cloud-native pipelines are expected for 85%+ of senior data/ML roles in 2026."},
                 {"skill": "SQL & Data Warehousing", "urgency": "Moderate", "reason": "Snowflake/BigQuery appear in 70% of data-focused job descriptions."},
             ]
+            career_aspiration = {
+                "target_role": "Machine Learning Engineer",
+                "target_domain": "AI & Data Science",
+                "confidence": "High",
+                "signals": ["Python and data libraries", "ML frameworks"],
+                "aspiration_summary": "Aiming to build and deploy ML models."
+            }
+            transition_type = "Growth"
         elif any(s in skill_names for s in ['javascript', 'typescript', 'react', 'html', 'css', 'node.js']):
             feedback = (
                 "### 🌟 Profile Summary\n"
@@ -475,62 +545,77 @@ class ClaudeService:
                 {"skill": "Automated Testing (Jest/Cypress)", "urgency": "Critical", "reason": "Hard requirement for senior frontend positions at most product companies."},
                 {"skill": "CI/CD Pipelines", "urgency": "Moderate", "reason": "Signals production maturity; commonly assessed in senior-level technical screens."},
             ]
+            career_aspiration = {
+                "target_role": "Frontend/Full Stack Developer",
+                "target_domain": "Software Engineering",
+                "confidence": "High",
+                "signals": ["React and JS skills", "UI component development"],
+                "aspiration_summary": "Focusing on modern web development."
+            }
+            transition_type = "Growth"
         else:
             feedback = (
                 "### 🌟 Profile Summary\n"
-                "Your resume shows a versatile technical foundation. "
-                "To maximize career trajectory, narrow your target to backend software engineering or cloud consulting where generalist skills translate to quick impact.\n\n"
+                "Your resume shows a versatile professional foundation. "
+                "Because your background doesn't strictly align with standard tech profiles, your best path is identifying your core transferable skills (communication, organization, problem-solving) and targeting specific domains like operations, administration, or specialized industry roles.\n\n"
                 "### 🎯 Skill Gap Analysis\n"
-                "- **Missing: REST API Development** — Flask/FastAPI or Express are baseline expectations for any backend role.\n"
-                "- **Missing: Docker / Containerization** — Container skills appear in 75% of backend and DevOps job descriptions.\n"
-                "- **Missing: Database Proficiency (SQL/NoSQL)** — PostgreSQL or MongoDB experience is expected for full-stack and backend roles.\n\n"
+                "- **Missing: Industry-Specific Tools** — Every field has its standard software (e.g., EHR for Healthcare, AutoCAD for Engineering). Identify and learn yours.\n"
+                "- **Missing: Quantifiable Achievements** — Generalist resumes often lack hard numbers. You need to prove impact.\n"
+                "- **Missing: Clear Specialization** — Your profile may appear too broad. Employers hire for specific problems.\n\n"
                 "### 📈 Areas of Improvement\n"
-                "- Build and deploy a REST API project — even a simple CRUD app shows real engineering discipline.\n"
-                "- Add a Dockerfile and docker-compose.yml to your main GitHub project.\n"
-                "- Rewrite CV bullets using STAR format with quantifiable outcomes.\n\n"
+                "- Pinpoint ONE specific target job title and tailor your entire resume towards it.\n"
+                "- Take a short certification course related to that specific job title to show commitment.\n"
+                "- Rewrite CV bullets using the STAR format with clear, quantifiable outcomes.\n\n"
                 "### 🗓️ 30/60/90 Day Action Plan\n"
                 "**Month 1 (Quick Wins):**\n"
-                "- Build a Flask or FastAPI REST API and deploy it to Render (free tier).\n"
-                "- Update GitHub profile with a pinned repo showcase and filled-out README.\n"
-                "- Update LinkedIn headline.\n\n"
+                "- Define your target industry and job title.\n"
+                "- Update your LinkedIn headline to reflect this target, rather than your current status.\n\n"
                 "**Month 2 (Momentum):**\n"
-                "- Add Docker containerization to your project and push to Docker Hub.\n"
-                "- Complete the Google IT Support or CompTIA A+ cert prep.\n\n"
+                "- Start a certification or training program highly valued in your target industry.\n"
+                "- Connect with 5 professionals in your target field on LinkedIn.\n\n"
                 "**Month 3 (Launch):**\n"
-                "- Apply to 20 junior backend or cloud support roles.\n"
-                "- Attend one tech meetup or virtual networking event.\n\n"
+                "- Apply to 15-20 entry or mid-level roles in your new target domain.\n"
+                "- Conduct mock interviews focusing on how your past experience transfers over.\n\n"
                 "### 🚀 Strategic Guidance\n"
-                "Start by targeting companies that value versatility over deep specialization: startups, consultancies, and mid-size SaaS companies. "
-                "Use your breadth as a selling point in interviews — you can contribute across the stack from day one.\n\n"
+                "When your background is non-traditional, networking is more effective than cold applying. "
+                "Focus on your adaptability and eagerness to learn. Craft a compelling narrative about *why* you are targeting this specific field.\n\n"
                 "### 💼 LinkedIn Optimization\n"
-                "- **Headline:** \"Software Developer | Backend APIs · Python · Cloud Infrastructure\"\n"
-                "- **About opener:** 'I build backend systems and APIs that are reliable, testable, and easy to maintain. Comfortable working across the stack and contributing from day one in fast-moving teams.'\n"
-                "- **Featured:** Pin your best GitHub project with a live link and clear README.\n\n"
+                "- **Headline:** \"[Your Target Role] | Operations & Strategy | Problem Solver\"\n"
+                "- **About opener:** 'Adaptable professional with a track record of driving results and streamlining processes. Passionate about transitioning my operational skills into [Target Industry].'\n"
+                "- **Featured:** Highlight any major project, presentation, or certification.\n\n"
                 "### 🎤 Interview Prep\n"
-                "**Q: 'Tell me about a challenging technical problem you solved.'**\n"
-                "- Situation: Describe a real project obstacle\n"
-                "- Task: What you were responsible for\n"
-                "- Action: Specific debugging/design steps you took\n"
-                "- Result: The outcome and what you learned\n"
+                "**Q: 'Why are you interested in this role given your different background?'**\n"
+                "- Situation: Acknowledge your unique path\n"
+                "- Task: Explain your underlying career motivation\n"
+                "- Action: Highlight the specific transferable skills you bring\n"
+                "- Result: Express how your fresh perspective will benefit their team\n"
             )
             paths = [
-                {"title": "Backend Software Engineer", "demand": "High", "salary_range": "$85k-$125k USD", "why_fit": "General programming skills are foundational; Python/API experience accelerates backend ramp-up."},
-                {"title": "Cloud Systems Administrator", "demand": "Medium", "salary_range": "$75k-$110k USD", "why_fit": "Technical breadth suits cloud ops and infrastructure support roles well."},
-                {"title": "Technical Solutions Consultant", "demand": "Medium", "salary_range": "$80k-$120k USD", "why_fit": "Versatile technical profile matches consulting roles that bridge code and client communication."},
+                {"title": "Operations Coordinator", "demand": "Medium", "salary_range": "$55k-$80k USD", "why_fit": "Your general professional skills make you highly adaptable for operational support."},
+                {"title": "Customer Success Manager", "demand": "High", "salary_range": "$65k-$95k USD", "why_fit": "Communication and problem-solving skills are the core requirements here."},
+                {"title": "Administrative Specialist", "demand": "Medium", "salary_range": "$45k-$70k USD", "why_fit": "Organizational skills and reliability are perfectly suited for this role."},
             ]
             certs = [
-                {"name": "CompTIA Security+", "platform": "CompTIA", "duration": "2-3 months", "priority": "High", "reason": "Widely recognized cert that opens doors to cloud, IT, and security-adjacent roles."},
-                {"name": "Google IT Support Professional Certificate", "platform": "Coursera", "duration": "3-4 months", "priority": "High", "reason": "Entry-level credential that demonstrates systems and networking fundamentals to employers."},
-                {"name": "Python Institute PCEP Certification", "platform": "Python Institute", "duration": "1-2 months", "priority": "Medium", "reason": "Validates Python fundamentals for roles that list Python as a requirement."},
+                {"name": "Microsoft Office Specialist (MOS)", "platform": "Microsoft", "duration": "1 month", "priority": "High", "reason": "Proves baseline professional competency in standard business software."},
+                {"name": "Certified Associate in Project Management (CAPM)", "platform": "PMI", "duration": "2-3 months", "priority": "Medium", "reason": "Great entry-level project management certification."},
+                {"name": "Google IT Support / Data Analytics", "platform": "Coursera", "duration": "3 months", "priority": "Low", "reason": "Can help bridge your general skills into a more specialized tech-adjacent role."},
             ]
-            profile_score = 42
+            profile_score = 50
             top_skill_gaps = [
-                {"skill": "REST API Development", "urgency": "Critical", "reason": "Baseline expectation for any backend or full-stack engineering role."},
-                {"skill": "Docker / Containerization", "urgency": "Critical", "reason": "Appears in 75% of backend job descriptions; required for most DevOps-adjacent roles."},
-                {"skill": "SQL / Database Design", "urgency": "Moderate", "reason": "Database skills are expected for virtually all application-layer engineering roles."},
+                {"skill": "Industry-Specific Software", "urgency": "Critical", "reason": "You need to know the basic tools used in your newly targeted industry."},
+                {"skill": "Quantifiable Metrics", "urgency": "Moderate", "reason": "Generalist resumes often lack the numbers needed to stand out."},
+                {"skill": "Domain Specialization", "urgency": "Moderate", "reason": "Employers look for specialists; you must frame your general skills as a specific solution."},
             ]
+            career_aspiration = {
+                "target_role": "General Professional",
+                "target_domain": "Operations / Administration",
+                "confidence": "Low",
+                "signals": ["Generalist background", "No distinct tech focus"],
+                "aspiration_summary": "Looking to leverage versatile skills into a structured operational role."
+            }
+            transition_type = "Pivot"
 
-        meta_comment = f"\n<!--advisor_meta:{json.dumps({'profile_score': profile_score, 'top_skill_gaps': top_skill_gaps})}-->"
+        meta_comment = f"\n<!--advisor_meta:{json.dumps({'profile_score': profile_score, 'top_skill_gaps': top_skill_gaps, 'career_aspiration': career_aspiration, 'transition_type': transition_type})}-->"
         self.job_repo.save_career_feedback(user_id, feedback + meta_comment, paths, certs)
 
         return {
