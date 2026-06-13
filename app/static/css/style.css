@@ -553,6 +553,44 @@ textarea.form-glass::placeholder {
 
 /* ===== ADVISOR PAGE RESPONSIVE ===== */
 
+/* Prevent any child from punching through the viewport */
+html { overflow-x: hidden; }
+
+/* Vision banner — flex children must shrink properly */
+.advisor-vision-banner {
+    max-width: 100%;
+    overflow: hidden;
+}
+.advisor-vision-banner .flex-grow-1 {
+    min-width: 0;          /* critical: allows flex item to shrink below content size */
+    overflow: hidden;
+}
+.advisor-vision-banner .fw-bold.text-white {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+.advisor-vision-banner .text-secondary {
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+/* Signal badges — wrap text instead of forcing width */
+.advisor-vision-banner .badge {
+    white-space: normal;
+    word-break: break-word;
+    text-align: left;
+    max-width: 100%;
+}
+/* Score row readiness label — clip very long role names */
+.advisor-score-row h5 {
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+/* Skill gap chips — don't overflow the score card */
+.advisor-score-row .d-flex.flex-wrap {
+    max-width: 100%;
+}
+
 /* Score card — stack columns on xs, side-by-side on sm+ */
 @media (max-width: 575.98px) {
     .advisor-score-row {
@@ -608,21 +646,21 @@ textarea.form-glass::placeholder {
 }
 
 /* Vision banner — compact stacking on mobile */
-@media (max-width: 575.98px) {
+@media (max-width: 767.98px) {
     .advisor-vision-banner {
-        flex-direction: column;
-        gap: 0.6rem !important;
+        flex-wrap: wrap !important;
+        gap: 0.5rem !important;
         padding: 0.75rem !important;
     }
     .advisor-vision-banner .flex-shrink-0 {
-        display: flex !important;
-        flex-direction: row;
-        align-items: center;
-        gap: 0.5rem;
         min-width: unset !important;
         text-align: left;
     }
-    .advisor-vision-banner .flex-shrink-0 .fs-2 { font-size: 1.4rem !important; }
+    .advisor-vision-banner .flex-shrink-0 .fs-2 { font-size: 1.3rem !important; }
+    /* Signals wrap onto multiple lines cleanly */
+    .advisor-vision-banner .d-flex.flex-wrap.gap-2 {
+        gap: 0.3rem !important;
+    }
 }
 
 /* Generate / action buttons — full width on xs */

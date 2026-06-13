@@ -6,11 +6,11 @@
 <div class="container my-4">
 
     <!-- Header -->
-    <div class="text-center mb-5">
+    <div class="text-center mb-4 mb-md-5 px-2">
         <h1 class="display-5 fw-bold font-heading">
             <i class="fa-solid fa-robot text-primary me-2"></i>AI Career Advisor
         </h1>
-        <p class="text-secondary mx-auto px-2" style="max-width: 620px;">
+        <p class="text-secondary mx-auto px-2" style="max-width: 620px; word-break: break-word;">
             Powered by Claude AI — personalized career analysis, skill gap detection, and a 30/60/90-day action plan built from your resume.
         </p>
     </div>
@@ -134,9 +134,9 @@
                     <div class="badge rounded-pill mt-1" style="font-size:0.65rem;background:rgba(34,197,94,0.18);color:#4ade80;border:1px solid rgba(34,197,94,0.35);">{{ feedback.transition_type or 'Growth' }}</div>
                     {% endif %}
                 </div>
-                <div class="flex-grow-1">
+                <div class="flex-grow-1" style="min-width:0;overflow:hidden;">
                     <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                        <span class="fw-bold text-white">Target: {{ asp.target_role or 'Not detected' }}</span>
+                        <span class="fw-bold text-white" style="word-break:break-word;overflow-wrap:break-word;">Target: {{ asp.target_role or 'Not detected' }}</span>
                         {% if asp.target_domain %}
                         <span class="badge rounded-pill" style="font-size:0.7rem;background:rgba(100,116,139,0.18);color:#94a3b8;border:1px solid rgba(100,116,139,0.3);">{{ asp.target_domain }}</span>
                         {% endif %}
