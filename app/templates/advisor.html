@@ -34,8 +34,8 @@
 
     <!-- No Feedback Yet -->
     {% if not feedback %}
-    <div class="row justify-content-center">
-        <div class="col-md-7 text-center py-5">
+    <div class="row justify-content-center g-4">
+        <div class="col-md-7 text-center">
             <div class="glass-card p-5 border-secondary">
                 <i class="fa-regular fa-lightbulb fs-1 text-warning mb-3"></i>
                 <h3>Ready to Analyze Your Profile</h3>
@@ -43,6 +43,67 @@
                 <button id="first-generate-btn" class="btn gradient-btn px-5 py-2">
                     <i class="fa-solid fa-wand-magic-sparkles me-2"></i> Generate AI Analysis
                 </button>
+            </div>
+        </div>
+
+        <!-- Cover Letter card (available even before full AI analysis) -->
+        <div class="col-md-7">
+            <div class="glass-card p-4 border-secondary">
+                <h5 class="font-heading text-white mb-1">
+                    <i class="fa-solid fa-file-pen text-primary me-2"></i>Generate a Cover Letter
+                </h5>
+                <p class="text-secondary mb-3" style="font-size:0.85rem;">
+                    Create an AI-tailored cover letter for any job using your uploaded resume — no full analysis needed.
+                </p>
+                <div class="row g-2 mb-2">
+                    <div class="col-sm-6">
+                        <input type="text" id="cl-job-title-nf" class="form-control form-glass border-secondary"
+                               placeholder="Job Title  e.g. Senior Data Analyst" style="font-size:0.85rem;">
+                    </div>
+                    <div class="col-sm-6">
+                        <input type="text" id="cl-company-nf" class="form-control form-glass border-secondary"
+                               placeholder="Company Name  e.g. Acme Corp" style="font-size:0.85rem;">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <textarea id="cl-job-desc-nf" class="form-control form-glass border-secondary"
+                              rows="5" placeholder="Paste the job description here…"
+                              style="font-size:0.85rem; resize:vertical;"></textarea>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <button id="cl-generate-btn-nf" class="btn gradient-btn px-4 py-2" style="font-size:0.85rem;">
+                        <i class="fa-solid fa-wand-magic-sparkles me-2"></i>Generate Cover Letter
+                    </button>
+                    <span id="cl-status-nf" class="text-secondary small d-none">
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>Writing your letter…
+                    </span>
+                </div>
+                <div id="cl-result-area-nf" class="mt-4 d-none">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-white fw-semibold" style="font-size:0.88rem;">
+                            <i class="fa-solid fa-file-check text-success me-2"></i>Your Cover Letter
+                        </span>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button id="cl-download-btn-nf" class="btn btn-sm d-flex align-items-center gap-2 px-3"
+                                    style="font-size:0.78rem; background:linear-gradient(135deg,#6366f1,#4f46e5);
+                                           color:#fff; border:none; border-radius:8px; box-shadow:0 2px 10px rgba(99,102,241,0.4);">
+                                <i class="fa-solid fa-file-word" style="font-size:0.9rem;"></i>
+                                <span>Download Premium Word</span>
+                            </button>
+                            <button id="cl-copy-btn-nf" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:0.75rem;">
+                                <i class="fa-regular fa-copy me-1"></i>Copy
+                            </button>
+                            <button id="cl-reset-btn-nf" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:0.75rem;">
+                                <i class="fa-solid fa-arrow-rotate-left me-1"></i>New Letter
+                            </button>
+                        </div>
+                    </div>
+                    <textarea id="cl-output-nf" class="form-control border-secondary"
+                              rows="16" readonly
+                              style="font-size:0.83rem; line-height:1.7; resize:vertical;
+                                     background:rgba(255,255,255,0.03); color:#e2e8f0;
+                                     border:1px solid rgba(255,255,255,0.12); border-radius:10px;"></textarea>
+                </div>
             </div>
         </div>
     </div>
@@ -65,24 +126,28 @@
                         {% elif feedback.transition_type == 'Entry' %}🚀
                         {% else %}📈{% endif %}
                     </div>
-                    <div class="badge rounded-pill mt-1
-                        {% if feedback.transition_type == 'Pivot' %}bg-warning bg-opacity-20 text-warning
-                        {% elif feedback.transition_type == 'Entry' %}bg-info bg-opacity-20 text-info
-                        {% else %}bg-success bg-opacity-20 text-success{% endif %}"
-                         style="font-size:0.65rem;">{{ feedback.transition_type or 'Growth' }}</div>
+                    {% if feedback.transition_type == 'Pivot' %}
+                    <div class="badge rounded-pill mt-1" style="font-size:0.65rem;background:rgba(245,158,11,0.18);color:#fbbf24;border:1px solid rgba(245,158,11,0.35);">{{ feedback.transition_type }}</div>
+                    {% elif feedback.transition_type == 'Entry' %}
+                    <div class="badge rounded-pill mt-1" style="font-size:0.65rem;background:rgba(34,211,238,0.18);color:#22d3ee;border:1px solid rgba(34,211,238,0.35);">{{ feedback.transition_type }}</div>
+                    {% else %}
+                    <div class="badge rounded-pill mt-1" style="font-size:0.65rem;background:rgba(34,197,94,0.18);color:#4ade80;border:1px solid rgba(34,197,94,0.35);">{{ feedback.transition_type or 'Growth' }}</div>
+                    {% endif %}
                 </div>
                 <div class="flex-grow-1">
                     <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
                         <span class="fw-bold text-white">Target: {{ asp.target_role or 'Not detected' }}</span>
                         {% if asp.target_domain %}
-                        <span class="badge bg-secondary bg-opacity-30 text-secondary rounded-pill" style="font-size:0.7rem;">{{ asp.target_domain }}</span>
+                        <span class="badge rounded-pill" style="font-size:0.7rem;background:rgba(100,116,139,0.18);color:#94a3b8;border:1px solid rgba(100,116,139,0.3);">{{ asp.target_domain }}</span>
                         {% endif %}
                         {% if asp.confidence %}
-                        <span class="badge rounded-pill
-                            {% if asp.confidence == 'High' %}bg-success bg-opacity-20 text-success
-                            {% elif asp.confidence == 'Medium' %}bg-warning bg-opacity-20 text-warning
-                            {% else %}bg-secondary bg-opacity-20 text-secondary{% endif %}"
-                              style="font-size:0.65rem;">{{ asp.confidence }} confidence</span>
+                            {% if asp.confidence == 'High' %}
+                            <span class="badge rounded-pill" style="font-size:0.65rem;background:rgba(34,197,94,0.18);color:#4ade80;border:1px solid rgba(34,197,94,0.35);">{{ asp.confidence }} confidence</span>
+                            {% elif asp.confidence == 'Medium' %}
+                            <span class="badge rounded-pill" style="font-size:0.65rem;background:rgba(245,158,11,0.18);color:#fbbf24;border:1px solid rgba(245,158,11,0.35);">{{ asp.confidence }} confidence</span>
+                            {% else %}
+                            <span class="badge rounded-pill" style="font-size:0.65rem;background:rgba(100,116,139,0.18);color:#94a3b8;border:1px solid rgba(100,116,139,0.3);">{{ asp.confidence }} confidence</span>
+                            {% endif %}
                         {% endif %}
                     </div>
                     {% if asp.aspiration_summary %}
@@ -92,8 +157,7 @@
                     <div class="d-flex flex-wrap gap-2">
                         <span class="text-secondary align-self-center" style="font-size:0.75rem;">Signals detected:</span>
                         {% for signal in asp.signals %}
-                        <span class="badge bg-secondary bg-opacity-15 text-secondary border border-secondary border-opacity-25 rounded-pill"
-                              style="font-size:0.72rem;">
+                        <span class="badge rounded-pill" style="font-size:0.72rem;background:rgba(100,116,139,0.15);color:#cbd5e1;border:1px solid rgba(100,116,139,0.3);">
                             <i class="fa-solid fa-magnifying-glass me-1"></i>{{ signal }}
                         </span>
                         {% endfor %}
@@ -162,15 +226,22 @@
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             <span class="text-secondary small me-1 align-self-center">Top gaps:</span>
                             {% for gap in feedback.top_skill_gaps %}
-                            <span class="badge rounded-pill px-3 py-1
-                                {% if gap.urgency == 'Critical' %}bg-danger bg-opacity-20 text-danger border border-danger border-opacity-40
-                                {% elif gap.urgency == 'Moderate' %}bg-warning bg-opacity-20 text-warning border border-warning border-opacity-40
-                                {% else %}bg-secondary bg-opacity-20 text-secondary border border-secondary border-opacity-40{% endif %}"
-                                  style="font-size:0.75rem; cursor:default;"
-                                  title="{{ gap.reason }}">
-                                {% if gap.urgency == 'Critical' %}<i class="fa-solid fa-triangle-exclamation me-1"></i>{% endif %}
-                                {{ gap.skill }}
-                            </span>
+                                {% if gap.urgency == 'Critical' %}
+                                <span class="badge rounded-pill px-3 py-1" title="{{ gap.reason }}"
+                                      style="font-size:0.75rem;cursor:default;background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.35);">
+                                    <i class="fa-solid fa-triangle-exclamation me-1"></i>{{ gap.skill }}
+                                </span>
+                                {% elif gap.urgency == 'Moderate' %}
+                                <span class="badge rounded-pill px-3 py-1" title="{{ gap.reason }}"
+                                      style="font-size:0.75rem;cursor:default;background:rgba(245,158,11,0.15);color:#fcd34d;border:1px solid rgba(245,158,11,0.35);">
+                                    {{ gap.skill }}
+                                </span>
+                                {% else %}
+                                <span class="badge rounded-pill px-3 py-1" title="{{ gap.reason }}"
+                                      style="font-size:0.75rem;cursor:default;background:rgba(100,116,139,0.15);color:#94a3b8;border:1px solid rgba(100,116,139,0.3);">
+                                    {{ gap.skill }}
+                                </span>
+                                {% endif %}
                             {% endfor %}
                         </div>
                         {% endif %}
@@ -228,6 +299,13 @@
                                 data-bs-target="#tab-interview" type="button" role="tab"
                                 style="font-size:0.82rem;">
                             <i class="fa-solid fa-comments me-1"></i>Interview
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link advisor-tab px-3 py-1" data-bs-toggle="pill"
+                                data-bs-target="#tab-coverletter" type="button" role="tab"
+                                style="font-size:0.82rem;">
+                            <i class="fa-solid fa-file-pen me-1"></i>Cover Letter
                         </button>
                     </li>
                 </ul>
@@ -293,6 +371,66 @@
                         </div>
                     </div>
 
+                    <!-- Cover Letter Tab -->
+                    <div class="tab-pane fade" id="tab-coverletter" role="tabpanel">
+                        <div id="cl-form-area">
+                            <p class="text-secondary mb-3" style="font-size:0.85rem;">
+                                Generate a tailored, ATS-friendly cover letter matched to a specific job — powered by your resume.
+                            </p>
+                            <div class="row g-2 mb-2">
+                                <div class="col-sm-6">
+                                    <input type="text" id="cl-job-title" class="form-control form-glass border-secondary"
+                                           placeholder="Job Title  e.g. Senior Data Analyst" style="font-size:0.85rem;">
+                                </div>
+                                <div class="col-sm-6">
+                                    <input type="text" id="cl-company" class="form-control form-glass border-secondary"
+                                           placeholder="Company Name  e.g. Acme Corp" style="font-size:0.85rem;">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <textarea id="cl-job-desc" class="form-control form-glass border-secondary"
+                                          rows="5" placeholder="Paste the job description here…"
+                                          style="font-size:0.85rem; resize:vertical;"></textarea>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <button id="cl-generate-btn" class="btn gradient-btn px-4 py-2" style="font-size:0.85rem;">
+                                    <i class="fa-solid fa-wand-magic-sparkles me-2"></i>Generate Cover Letter
+                                </button>
+                                <span id="cl-status" class="text-secondary small d-none">
+                                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>Writing your letter…
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Result area (hidden until generated) -->
+                        <div id="cl-result-area" class="mt-4 d-none">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="text-white fw-semibold" style="font-size:0.88rem;">
+                                    <i class="fa-solid fa-file-check text-success me-2"></i>Your Cover Letter
+                                </span>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button id="cl-download-btn" class="btn btn-sm d-flex align-items-center gap-2 px-3"
+                                            style="font-size:0.78rem; background:linear-gradient(135deg,#6366f1,#4f46e5);
+                                                   color:#fff; border:none; border-radius:8px; box-shadow:0 2px 10px rgba(99,102,241,0.4);">
+                                        <i class="fa-solid fa-file-word" style="font-size:0.9rem;"></i>
+                                        <span>Download Premium Word</span>
+                                    </button>
+                                    <button id="cl-copy-btn" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:0.75rem;">
+                                        <i class="fa-regular fa-copy me-1"></i>Copy
+                                    </button>
+                                    <button id="cl-reset-btn" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:0.75rem;">
+                                        <i class="fa-solid fa-arrow-rotate-left me-1"></i>New Letter
+                                    </button>
+                                </div>
+                            </div>
+                            <textarea id="cl-output" class="form-control border-secondary"
+                                      rows="16" readonly
+                                      style="font-size:0.83rem; line-height:1.7; resize:vertical;
+                                             background:rgba(255,255,255,0.03); color:#e2e8f0;
+                                             border:1px solid rgba(255,255,255,0.12); border-radius:10px;"></textarea>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -313,11 +451,13 @@
                          style="background:rgba(255,255,255,0.03); transition: background 0.2s;">
                         <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
                             <span class="fw-semibold text-white" style="font-size:0.88rem;">{{ path.title }}</span>
-                            <span class="badge rounded-pill flex-shrink-0
-                                {% if path.demand == 'High' %}bg-success bg-opacity-20 text-success
-                                {% elif path.demand == 'Medium' %}bg-warning bg-opacity-20 text-warning
-                                {% else %}bg-secondary bg-opacity-20 text-secondary{% endif %}"
-                                  style="font-size:0.68rem;">{{ path.demand }} Demand</span>
+                            {% if path.demand == 'High' %}
+                            <span class="badge rounded-pill flex-shrink-0" style="font-size:0.68rem;background:rgba(34,197,94,0.18);color:#4ade80;border:1px solid rgba(34,197,94,0.35);">{{ path.demand }} Demand</span>
+                            {% elif path.demand == 'Medium' %}
+                            <span class="badge rounded-pill flex-shrink-0" style="font-size:0.68rem;background:rgba(245,158,11,0.18);color:#fcd34d;border:1px solid rgba(245,158,11,0.35);">{{ path.demand }} Demand</span>
+                            {% else %}
+                            <span class="badge rounded-pill flex-shrink-0" style="font-size:0.68rem;background:rgba(100,116,139,0.18);color:#94a3b8;border:1px solid rgba(100,116,139,0.3);">{{ path.demand }} Demand</span>
+                            {% endif %}
                         </div>
                         <div class="d-flex flex-wrap gap-3 mb-1" style="font-size:0.78rem;">
                             {% if path.salary_range %}
@@ -362,11 +502,13 @@
                          style="background:rgba(255,255,255,0.03);">
                         <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
                             <span class="fw-semibold text-white" style="font-size:0.85rem;">{{ cert.name }}</span>
-                            <span class="badge rounded-pill flex-shrink-0
-                                {% if cert.priority == 'High' %}bg-danger bg-opacity-20 text-danger
-                                {% elif cert.priority == 'Medium' %}bg-warning bg-opacity-20 text-warning
-                                {% else %}bg-secondary bg-opacity-20 text-secondary{% endif %}"
-                                  style="font-size:0.67rem;">{{ cert.priority }}</span>
+                            {% if cert.priority == 'High' %}
+                            <span class="badge rounded-pill flex-shrink-0" style="font-size:0.67rem;background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.35);">{{ cert.priority }}</span>
+                            {% elif cert.priority == 'Medium' %}
+                            <span class="badge rounded-pill flex-shrink-0" style="font-size:0.67rem;background:rgba(245,158,11,0.18);color:#fcd34d;border:1px solid rgba(245,158,11,0.35);">{{ cert.priority }}</span>
+                            {% else %}
+                            <span class="badge rounded-pill flex-shrink-0" style="font-size:0.67rem;background:rgba(100,116,139,0.18);color:#94a3b8;border:1px solid rgba(100,116,139,0.3);">{{ cert.priority }}</span>
+                            {% endif %}
                         </div>
                         <div class="d-flex gap-3 mb-1" style="font-size:0.75rem;">
                             {% if cert.platform %}
@@ -473,9 +615,9 @@ document.addEventListener('DOMContentLoaded', () => {
             requestAnimationFrame(step);
 
             if (labelEl) {
-                if (target >= 75) { labelEl.textContent = 'Strong'; labelEl.className = 'badge rounded-pill px-3 py-1 bg-success bg-opacity-20 text-success'; }
-                else if (target >= 55) { labelEl.textContent = 'Developing'; labelEl.className = 'badge rounded-pill px-3 py-1 bg-warning bg-opacity-20 text-warning'; }
-                else { labelEl.textContent = 'Needs Work'; labelEl.className = 'badge rounded-pill px-3 py-1 bg-danger bg-opacity-20 text-danger'; }
+                if (target >= 75) { labelEl.textContent = 'Strong'; labelEl.className = 'badge rounded-pill px-3 py-1'; labelEl.style.cssText = 'background:rgba(34,197,94,0.18);color:#4ade80;border:1px solid rgba(34,197,94,0.35);font-size:0.75rem;'; }
+                else if (target >= 55) { labelEl.textContent = 'Developing'; labelEl.className = 'badge rounded-pill px-3 py-1'; labelEl.style.cssText = 'background:rgba(245,158,11,0.18);color:#fcd34d;border:1px solid rgba(245,158,11,0.35);font-size:0.75rem;'; }
+                else { labelEl.textContent = 'Needs Work'; labelEl.className = 'badge rounded-pill px-3 py-1'; labelEl.style.cssText = 'background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.35);font-size:0.75rem;'; }
             }
         }, 400);
     }
@@ -596,6 +738,133 @@ document.addEventListener('DOMContentLoaded', () => {
 
     $('generate-advisor-btn')?.addEventListener('click', triggerGeneration);
     $('first-generate-btn')?.addEventListener('click', triggerGeneration);
+
+    // ── Cover Letter Generation ──────────────────────────────────────────────
+    function makeCoverLetterHandler(opts) {
+        const { titleId, companyId, descId, btnId, statusId, resultAreaId, outputId, copyBtnId, resetBtnId, downloadBtnId } = opts;
+
+        async function generate() {
+            const jobTitle   = (document.getElementById(titleId)?.value || '').trim();
+            const company    = (document.getElementById(companyId)?.value || '').trim();
+            const jobDesc    = (document.getElementById(descId)?.value || '').trim();
+            const btn        = document.getElementById(btnId);
+            const statusEl   = document.getElementById(statusId);
+            const resultArea = document.getElementById(resultAreaId);
+            const outputEl   = document.getElementById(outputId);
+
+            if (!jobTitle || !company || !jobDesc) {
+                alert('Please fill in Job Title, Company Name, and Job Description.');
+                return;
+            }
+
+            if (btn) btn.disabled = true;
+            if (statusEl) statusEl.classList.remove('d-none');
+            if (resultArea) resultArea.classList.add('d-none');
+
+            try {
+                const res = await fetch('/advisor/cover-letter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ job_title: jobTitle, company_name: company, job_description: jobDesc })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (outputEl) outputEl.value = data.cover_letter;
+                    if (resultArea) resultArea.classList.remove('d-none');
+                } else {
+                    alert('Error: ' + (data.error || 'Could not generate cover letter.'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Network error. Please try again.');
+            } finally {
+                if (btn) btn.disabled = false;
+                if (statusEl) statusEl.classList.add('d-none');
+            }
+        }
+
+        document.getElementById(btnId)?.addEventListener('click', generate);
+
+        document.getElementById(copyBtnId)?.addEventListener('click', () => {
+            const text = document.getElementById(outputId)?.value || '';
+            navigator.clipboard.writeText(text).then(() => {
+                const copyBtn = document.getElementById(copyBtnId);
+                if (copyBtn) {
+                    copyBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i>Copied!';
+                    setTimeout(() => { copyBtn.innerHTML = '<i class="fa-regular fa-copy me-1"></i>Copy'; }, 2000);
+                }
+            });
+        });
+
+        document.getElementById(resetBtnId)?.addEventListener('click', () => {
+            const out = document.getElementById(outputId);
+            if (out) out.value = '';
+            document.getElementById(resultAreaId)?.classList.add('d-none');
+            document.getElementById(titleId).value = '';
+            document.getElementById(companyId).value = '';
+            document.getElementById(descId).value = '';
+        });
+
+        document.getElementById(downloadBtnId)?.addEventListener('click', async () => {
+            const text    = document.getElementById(outputId)?.value || '';
+            const title   = document.getElementById(titleId)?.value || '';
+            const company = document.getElementById(companyId)?.value || '';
+            const dlBtn   = document.getElementById(downloadBtnId);
+
+            if (!text) return;
+
+            const origHtml = dlBtn.innerHTML;
+            dlBtn.disabled = true;
+            dlBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Building…';
+
+            try {
+                const res = await fetch('/advisor/cover-letter/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cover_letter: text, job_title: title, company_name: company })
+                });
+
+                if (!res.ok) { alert('Download failed. Please try again.'); return; }
+
+                const blob = await res.blob();
+                const url  = URL.createObjectURL(blob);
+                const a    = document.createElement('a');
+                const safe = company.replace(/[^a-zA-Z0-9]/g, '_') || 'Company';
+                a.href     = url;
+                a.download = `Cover_Letter_${safe}.docx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                dlBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Downloaded!';
+                setTimeout(() => { dlBtn.innerHTML = origHtml; dlBtn.disabled = false; }, 2500);
+            } catch (err) {
+                console.error(err);
+                alert('Network error during download.');
+                dlBtn.innerHTML = origHtml;
+                dlBtn.disabled  = false;
+            }
+        });
+    }
+
+    // Tab variant (shown when feedback exists)
+    makeCoverLetterHandler({
+        titleId: 'cl-job-title', companyId: 'cl-company', descId: 'cl-job-desc',
+        btnId: 'cl-generate-btn', statusId: 'cl-status',
+        resultAreaId: 'cl-result-area', outputId: 'cl-output',
+        copyBtnId: 'cl-copy-btn', resetBtnId: 'cl-reset-btn',
+        downloadBtnId: 'cl-download-btn'
+    });
+
+    // No-feedback card variant
+    makeCoverLetterHandler({
+        titleId: 'cl-job-title-nf', companyId: 'cl-company-nf', descId: 'cl-job-desc-nf',
+        btnId: 'cl-generate-btn-nf', statusId: 'cl-status-nf',
+        resultAreaId: 'cl-result-area-nf', outputId: 'cl-output-nf',
+        copyBtnId: 'cl-copy-btn-nf', resetBtnId: 'cl-reset-btn-nf',
+        downloadBtnId: 'cl-download-btn-nf'
+    });
 
     // ── Hover effect on path/cert cards ─────────────────────────────────────
     document.querySelectorAll('.advisor-path-card, .advisor-cert-card').forEach(card => {

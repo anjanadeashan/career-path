@@ -238,7 +238,7 @@ class ClaudeService:
         
         # Use claude-3-haiku-20240307 for fast and cost-effective extraction
         response = self.client.messages.create(
-            model="claude-3-haiku-20240307",
+            model="claude-haiku-4-5-20251001",
             max_tokens=2000,
             temperature=0.1,
             system=system_prompt,
@@ -340,7 +340,7 @@ class ClaudeService:
 
         # Call Claude (fast, cost-effective Haiku model)
         response = self.client.messages.create(
-            model="claude-3-haiku-20240307",
+            model="claude-haiku-4-5-20251001",
             max_tokens=4000,
             temperature=0.1,
             system=system_prompt,
@@ -642,11 +642,14 @@ class ClaudeService:
 
             system_prompt = (
                 "You are an expert Career Coach and Executive Copywriter. "
-                "Your task is to write a compelling, professional, and ATS-friendly cover letter. "
-                "You must align the candidate's past experience directly with the provided job description. "
-                "Do not make up facts or experiences the candidate does not have. "
-                "Format the response as a clean text document with standard cover letter formatting (Header, Salutation, 3 Body Paragraphs, Conclusion, Sign-off). "
-                "Highlight 2-3 key achievements from the resume that perfectly match the job requirements."
+                "Your task is to write a premium, compelling, professional, and ATS-friendly cover letter. "
+                "Align the candidate's experience directly with the job description and company focus. "
+                "Do not invent facts or experiences that are not supported by the resume. "
+                "Produce a polished cover letter with a strong opening, value-driven body paragraphs, a company-fit paragraph, and a confident closing. "
+                "Write the letter as a one-page document, approximately 250-320 words. "
+                "Use precise, executive language, quantify achievements where possible, and keep the final output readable and well-structured. "
+                "Format the response as a clean text document with standard cover letter structure: Header, Salutation, Body, Conclusion, Sign-off. "
+                "Highlight 2-3 key achievements from the resume that align closely with the target role."
             )
 
             user_prompt = (
@@ -659,7 +662,7 @@ class ClaudeService:
 
             if self.client:
                 response = self.client.messages.create(
-                    model="claude-3-haiku-20240307",
+                    model="claude-haiku-4-5-20251001",
                     max_tokens=1500,
                     temperature=0.4,
                     system=system_prompt,
