@@ -46,16 +46,17 @@ class ClaudeService:
             
             # Format Prompt
             system_prompt = (
-                "You are an expert Senior Career Advisor and Full Stack Architect. "
+                "You are an expert Senior Career Advisor, Technical Recruiter, and Full Stack Architect. "
                 "Analyze the user's CV and skill profile. "
                 "Provide detailed, high-impact career advice in valid JSON format. "
                 "The JSON object must contain exactly three keys:\n"
-                "1. 'feedback_text': A highly detailed, thorough, and in-depth Markdown document (at least 450-650 words) with bullet points, bold key terms, and the following subheadings:\n"
+                "1. 'feedback_text': A highly detailed, thorough, and in-depth Markdown document (at least 600-800 words) with bullet points, bold key terms, and the following subheadings:\n"
                 "   - '### 🌟 Profile Summary': Provide a comprehensive analysis of their top strengths, hybrid value proposition, and unique competitive advantages.\n"
                 "   - '### 📈 Areas of Improvement': Detail critical gaps in their experience, specific frameworks/tools they should master, portfolio projects they should build, and how to improve their CV bullet points.\n"
                 "   - '### 🚀 Strategic Guidance': Provide actionable guidance on how to package and position their profile in the current job market, interview preparation advice, and strategic career roadmap details.\n"
-                "2. 'career_paths': An array of 3 recommended job/career pathways.\n"
-                "3. 'recommended_certifications': An array of 3 professional certifications or courses that will maximize their chances of employment.\n\n"
+                "   - '### 💼 LinkedIn Optimization': Specific, actionable tips to improve their LinkedIn headline, about section, featured projects, and experience descriptions to attract top recruiters.\n"
+                "2. 'career_paths': An array of 3 to 5 highly specific, modern job/career pathways (e.g., 'Cloud-Native Data Engineer', 'AI-Driven Product Manager').\n"
+                "3. 'recommended_certifications': An array of 3 to 5 professional certifications or courses that will maximize their chances of employment.\n\n"
                 "Crucial: Avoid brief summaries. Provide comprehensive, extensive, and actionable paragraphs under each heading, using bolding (**text**) and bullet lists extensively so it renders beautifully.\n\n"
                 "Example JSON response structure:\n"
                 "{\n"
@@ -306,9 +307,12 @@ class ClaudeService:
                 "With python skills and analytics libraries (Pandas, NumPy, Scikit-learn), you are well-positioned for data engineering and junior ML roles.\n\n"
                 "### Areas of Improvement\n"
                 "To stand out in the current job market, you should expand your depth in cloud architectures (AWS/GCP deployment patterns) "
-                "and deep learning packages. Make sure your portfolio projects include productionizing models, not just running Jupyter notebooks."
+                "and deep learning packages. Make sure your portfolio projects include productionizing models, not just running Jupyter notebooks.\n\n"
+                "### 💼 LinkedIn Optimization\n"
+                "- **Headline:** Update to 'Data Scientist | Machine Learning Engineer | Python & Cloud Analytics'\n"
+                "- **Featured Section:** Pin a link to a deployed machine learning project on GitHub with a solid README."
             )
-            paths = ["Data Scientist", "Machine Learning Engineer", "Business Intelligence Analyst"]
+            paths = ["Data Scientist (Cloud/MLOps)", "Machine Learning Engineer", "Business Intelligence Analyst"]
             certs = ["AWS Certified Machine Learning - Specialty", "Google Cloud Professional Data Engineer", "TensorFlow Developer Certificate"]
         elif any(s in skill_names for s in ['javascript', 'typescript', 'react', 'html', 'css', 'node.js']):
             feedback = (
@@ -317,9 +321,12 @@ class ClaudeService:
                 "Your skills with UI design, React/JavaScript, and front-end architectures match well with full-stack and frontend development pathways.\n\n"
                 "### Areas of Improvement\n"
                 "We recommend mastering state-management patterns (Redux/Zustand) and backend integration with SQL databases. "
-                "Adding CI/CD pipeline automation to your github repositories will show hiring managers that you understand engineering lifecycle practices."
+                "Adding CI/CD pipeline automation to your github repositories will show hiring managers that you understand engineering lifecycle practices.\n\n"
+                "### 💼 LinkedIn Optimization\n"
+                "- **Headline:** Use 'Frontend Engineer | React & TypeScript Developer | Building Modern UIs'\n"
+                "- **About Section:** Highlight your focus on performance optimization, responsive design, and user experience."
             )
-            paths = ["Frontend Engineer", "Full Stack Developer", "UX/UI Engineer"]
+            paths = ["Senior Frontend Engineer", "Full Stack Web Developer (MERN)", "UX/UI Design Technologist"]
             certs = ["Meta Front-End Developer Professional Certificate", "AWS Certified Developer", "Certified ScrumMaster (CSM)"]
         else:
             feedback = (
@@ -328,9 +335,12 @@ class ClaudeService:
                 "To optimize your career trajectory, we recommend narrowing your target roles to backend software engineering or technology consulting.\n\n"
                 "### Areas of Improvement\n"
                 "Develop clean API programming skills (Flask/FastAPI) and version control proficiency. "
-                "Ensure your CV includes active GitHub links showcasing complete projects with comprehensive README files."
+                "Ensure your CV includes active GitHub links showcasing complete projects with comprehensive README files.\n\n"
+                "### 💼 LinkedIn Optimization\n"
+                "- **Headline:** Craft a clear headline like 'Software Developer | Backend Systems & API Design'\n"
+                "- **Experience:** Focus on quantifiable achievements and list the core technologies you used in each role."
             )
-            paths = ["Junior Software Developer", "Systems Administrator", "IT Support Specialist"]
+            paths = ["Backend Software Engineer", "Cloud Systems Administrator", "Technical Solutions Consultant"]
             certs = ["CompTIA Security+", "Google IT Support Professional Certificate", "Python Institute PCEP Certification"]
 
         # Store feedback in database
