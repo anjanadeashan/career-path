@@ -22,22 +22,22 @@
 
     <!-- Analytics Cards Row -->
     <div class="row g-4 mb-5">
-        <div class="col-md-4">
-            <div class="glass-card p-4 border-secondary text-center">
+        <div class="col-12 col-md-4">
+            <div class="glass-card p-4 border-secondary text-center admin-stat-card">
                 <i class="fa-solid fa-users fs-2 text-primary mb-3"></i>
                 <h5 class="text-secondary small text-uppercase fw-bold">Total Registered Users</h5>
                 <h2 class="display-6 fw-bold text-white mb-0">{{ total_users }}</h2>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="glass-card p-4 border-secondary text-center">
+        <div class="col-12 col-md-4">
+            <div class="glass-card p-4 border-secondary text-center admin-stat-card">
                 <i class="fa-solid fa-file-pdf fs-2 text-success mb-3"></i>
                 <h5 class="text-secondary small text-uppercase fw-bold">Parsed Candidate CVs</h5>
                 <h2 class="display-6 fw-bold text-white mb-0">{{ total_resumes }}</h2>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="glass-card p-4 border-secondary text-center">
+        <div class="col-12 col-md-4">
+            <div class="glass-card p-4 border-secondary text-center admin-stat-card">
                 <i class="fa-solid fa-briefcase fs-2 text-warning mb-3"></i>
                 <h5 class="text-secondary small text-uppercase fw-bold">Available Job Openings</h5>
                 <h2 class="display-6 fw-bold text-white mb-0">{{ total_jobs }}</h2>
@@ -67,12 +67,12 @@
                     </div>
 
                     <div class="row g-2 mb-3">
-                        <div class="col-md-7">
+                        <div class="col-12 col-md-7">
                             <label for="location" class="form-label text-secondary small">Location</label>
                             <input type="text" class="form-control form-glass" id="location" name="location"
                                 placeholder="e.g. Remote / New York" required>
                         </div>
-                        <div class="col-md-5">
+                        <div class="col-12 col-md-5">
                             <label for="job_type" class="form-label text-secondary small">Job Type</label>
                             <select class="form-select form-glass" id="job_type" name="job_type">
                                 <option value="Full-time" selected>Full-time</option>
@@ -109,23 +109,23 @@
         <div class="col-lg-7">
             <div class="glass-card p-4 border-secondary">
                 <!-- Navigation Tabs -->
-                <ul class="nav nav-tabs border-secondary mb-4" id="adminTabs" role="tablist">
+                <ul class="nav nav-tabs border-secondary mb-4 admin-tabs-scroll" id="adminTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link text-white border-0 active bg-transparent px-3 py-2.5" id="jobs-tab"
+                        <button class="nav-link text-white border-0 active bg-transparent px-3 py-2" id="jobs-tab"
                             data-bs-toggle="tab" data-bs-target="#jobs-panel" type="button" role="tab"
                             aria-controls="jobs-panel" aria-selected="true">
                             <i class="fa-solid fa-briefcase me-2 text-warning"></i>Jobs Catalog
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link text-white border-0 bg-transparent px-3 py-2.5" id="users-tab"
+                        <button class="nav-link text-white border-0 bg-transparent px-3 py-2" id="users-tab"
                             data-bs-toggle="tab" data-bs-target="#users-panel" type="button" role="tab"
                             aria-controls="users-panel" aria-selected="false">
                             <i class="fa-solid fa-users me-2 text-primary"></i>Registered Users
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link text-white border-0 bg-transparent px-3 py-2.5" id="resumes-tab"
+                        <button class="nav-link text-white border-0 bg-transparent px-3 py-2" id="resumes-tab"
                             data-bs-toggle="tab" data-bs-target="#resumes-panel" type="button" role="tab"
                             aria-controls="resumes-panel" aria-selected="false">
                             <i class="fa-solid fa-file-contract me-2 text-success"></i>Uploaded CVs

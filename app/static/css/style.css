@@ -214,7 +214,7 @@ textarea.form-glass::placeholder {
 
 /* Chat bubble styling for advisor */
 .chat-container {
-    height: 500px;
+    max-height: min(500px, 60vh);
     overflow-y: auto;
     padding: 20px;
     border-radius: 12px;
@@ -377,7 +377,7 @@ textarea.form-glass::placeholder {
     }
 
     .chat-container {
-        height: 400px;
+        max-height: min(400px, 55vh);
     }
 }
 
@@ -401,7 +401,7 @@ textarea.form-glass::placeholder {
     }
 
     .chat-container {
-        height: 320px;
+        max-height: min(320px, 50vh);
     }
 
     .chat-bubble {
@@ -448,5 +448,137 @@ textarea.form-glass::placeholder {
     .match-badge {
         font-size: 1rem;
         padding: 6px 12px;
+    }
+
+    /* Reduce paddings and scale some fixed-size elements on very small screens */
+    .container {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    .glass-card {
+        padding: 0.9rem !important;
+    }
+
+    /* Scale down job role icon block used in the roles grid */
+    .job-role-card .flex-shrink-0 {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+    }
+
+    /* Smaller spinner for advisor loading on phones */
+    #loading-spinner .spinner-border { width: 1.5rem !important; height: 1.5rem !important; }
+}
+
+/* Responsive hero glow used in index template */
+.hero-glow {
+    width: clamp(120px, 22vw, 300px);
+    height: clamp(120px, 22vw, 300px);
+    background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, rgba(0,0,0,0) 70%);
+    filter: blur(30px);
+    z-index: -1;
+}
+
+/* Ensure the hero glow is hidden on small screens (keeps original d-none d-lg-block behavior) */
+@media (max-width: 991.98px) {
+    .hero-glow { display: none !important; }
+}
+
+/* Tweak sticky filter behaviour on medium screens to avoid overflow */
+@media (max-width: 1199.98px) {
+    .filter-panel-sticky { max-height: none; position: static; }
+}
+
+/* ===== ADMIN PAGE RESPONSIVE ===== */
+
+/* Admin tab nav — horizontal scroll on mobile instead of overflow */
+@media (max-width: 767.98px) {
+    .admin-tabs-scroll {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        flex-wrap: nowrap !important;
+    }
+    .admin-tabs-scroll::-webkit-scrollbar {
+        display: none;
+    }
+    .admin-tabs-scroll .nav-link {
+        white-space: nowrap;
+        padding: 8px 12px;
+        font-size: 0.82rem;
+    }
+}
+
+/* Admin analytics stat cards full-width on mobile */
+@media (max-width: 767.98px) {
+    .admin-stat-card {
+        padding: 1rem !important;
+    }
+    .admin-stat-card .display-6 {
+        font-size: 1.8rem;
+    }
+}
+
+/* ===== ADVISOR PAGE RESPONSIVE ===== */
+
+/* Score card — stack columns on xs, side-by-side on sm+ */
+@media (max-width: 575.98px) {
+    .advisor-score-row {
+        flex-direction: column;
+        align-items: center !important;
+        text-align: center;
+    }
+    .advisor-score-row .advisor-score-actions {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+    .advisor-score-row .advisor-score-actions .text-end {
+        text-align: center !important;
+    }
+}
+
+/* Tab report body height — shorter on mobile so it doesn't eat the whole screen */
+@media (max-width: 767.98px) {
+    .advisor-report-body {
+        max-height: 45vh !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .advisor-report-body {
+        max-height: 38vh !important;
+    }
+}
+
+/* Cover letter action buttons — wrap cleanly on mobile */
+@media (max-width: 575.98px) {
+    .cl-action-btns {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    .cl-action-btns .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Advisor tab pills — wrap and shrink on very small screens */
+@media (max-width: 400px) {
+    #advisorTabs .nav-link {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+}
+
+/* ===== PROFILE PAGE RESPONSIVE ===== */
+
+/* Resume filename truncation on narrow screens */
+@media (max-width: 575.98px) {
+    .resume-filename {
+        max-width: 120px !important;
     }
 }
