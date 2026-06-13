@@ -590,6 +590,21 @@ html { overflow-x: hidden; }
 .advisor-score-row .d-flex.flex-wrap {
     max-width: 100%;
 }
+/* Override Bootstrap's white-space:nowrap on badges inside advisor — allow wrapping */
+.advisor-score-row .badge,
+.advisor-vision-banner .badge {
+    white-space: normal !important;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    text-align: left;
+    max-width: 100%;
+    line-height: 1.35;
+}
+/* Score card middle column must shrink properly in flex context */
+.advisor-score-row .col-12.col-sm {
+    min-width: 0;
+    overflow: hidden;
+}
 
 /* Score card — stack columns on xs, side-by-side on sm+ */
 @media (max-width: 575.98px) {
@@ -729,11 +744,23 @@ html { overflow-x: hidden; }
     }
 }
 
-/* Skill gap chips — allow single-column wrap on very small screens */
-@media (max-width: 400px) {
+/* Skill gap chips — smaller font, full available width on mobile */
+@media (max-width: 767.98px) {
+    .advisor-score-row .badge {
+        font-size: 0.72rem !important;
+        width: fit-content;
+        max-width: 100%;
+    }
     .advisor-score-row .d-flex.flex-wrap.gap-2 {
         gap: 0.35rem !important;
+        flex-direction: column;
+        align-items: flex-start;
     }
+    .advisor-score-row .d-flex.flex-wrap.gap-2 .text-secondary {
+        margin-bottom: 0.1rem;
+    }
+}
+@media (max-width: 400px) {
     .advisor-score-row .badge {
         font-size: 0.68rem !important;
     }
