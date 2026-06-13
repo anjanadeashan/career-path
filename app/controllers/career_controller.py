@@ -16,7 +16,7 @@ resume_repo = ResumeRepository()
 
 
 def _parse_advisor_meta(feedback: dict) -> dict:
-    """Extract profile_score and top_skill_gaps from the hidden HTML comment in feedback_text."""
+    """Extract enriched meta fields from the hidden HTML comment embedded in feedback_text."""
     if not feedback:
         return feedback
     raw = feedback.get('feedback_text', '')
@@ -26,13 +26,19 @@ def _parse_advisor_meta(feedback: dict) -> dict:
             meta = json.loads(match.group(1))
             feedback['profile_score'] = meta.get('profile_score', 0)
             feedback['top_skill_gaps'] = meta.get('top_skill_gaps', [])
+            feedback['career_aspiration'] = meta.get('career_aspiration', {})
+            feedback['transition_type'] = meta.get('transition_type', '')
             feedback['feedback_text'] = raw[:match.start()].rstrip()
         except (json.JSONDecodeError, KeyError):
             feedback.setdefault('profile_score', 0)
             feedback.setdefault('top_skill_gaps', [])
+            feedback.setdefault('career_aspiration', {})
+            feedback.setdefault('transition_type', '')
     else:
         feedback.setdefault('profile_score', 0)
         feedback.setdefault('top_skill_gaps', [])
+        feedback.setdefault('career_aspiration', {})
+        feedback.setdefault('transition_type', '')
     return feedback
 
 

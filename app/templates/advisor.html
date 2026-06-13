@@ -49,6 +49,62 @@
 
     {% else %}
 
+    <!-- ── Career Vision Banner ── -->
+    {% if feedback.career_aspiration %}
+    {% set asp = feedback.career_aspiration %}
+    <div class="row justify-content-center mb-3">
+        <div class="col-12 col-lg-11">
+            <div class="p-3 rounded-3 border d-flex flex-wrap align-items-start gap-3 advisor-vision-banner
+                {% if feedback.transition_type == 'Pivot' %}border-warning border-opacity-40
+                {% elif feedback.transition_type == 'Entry' %}border-info border-opacity-40
+                {% else %}border-success border-opacity-40{% endif %}"
+                 data-transition="{{ feedback.transition_type or 'Growth' }}">
+                <div class="flex-shrink-0 text-center" style="min-width:54px;">
+                    <div class="fs-2">
+                        {% if feedback.transition_type == 'Pivot' %}🔄
+                        {% elif feedback.transition_type == 'Entry' %}🚀
+                        {% else %}📈{% endif %}
+                    </div>
+                    <div class="badge rounded-pill mt-1
+                        {% if feedback.transition_type == 'Pivot' %}bg-warning bg-opacity-20 text-warning
+                        {% elif feedback.transition_type == 'Entry' %}bg-info bg-opacity-20 text-info
+                        {% else %}bg-success bg-opacity-20 text-success{% endif %}"
+                         style="font-size:0.65rem;">{{ feedback.transition_type or 'Growth' }}</div>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                        <span class="fw-bold text-white">Target: {{ asp.target_role or 'Not detected' }}</span>
+                        {% if asp.target_domain %}
+                        <span class="badge bg-secondary bg-opacity-30 text-secondary rounded-pill" style="font-size:0.7rem;">{{ asp.target_domain }}</span>
+                        {% endif %}
+                        {% if asp.confidence %}
+                        <span class="badge rounded-pill
+                            {% if asp.confidence == 'High' %}bg-success bg-opacity-20 text-success
+                            {% elif asp.confidence == 'Medium' %}bg-warning bg-opacity-20 text-warning
+                            {% else %}bg-secondary bg-opacity-20 text-secondary{% endif %}"
+                              style="font-size:0.65rem;">{{ asp.confidence }} confidence</span>
+                        {% endif %}
+                    </div>
+                    {% if asp.aspiration_summary %}
+                    <p class="text-secondary mb-2" style="font-size:0.82rem;">{{ asp.aspiration_summary }}</p>
+                    {% endif %}
+                    {% if asp.signals %}
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="text-secondary align-self-center" style="font-size:0.75rem;">Signals detected:</span>
+                        {% for signal in asp.signals %}
+                        <span class="badge bg-secondary bg-opacity-15 text-secondary border border-secondary border-opacity-25 rounded-pill"
+                              style="font-size:0.72rem;">
+                            <i class="fa-solid fa-magnifying-glass me-1"></i>{{ signal }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- ── Profile Score Bar ── -->
     <div class="row justify-content-center mb-4">
         <div class="col-12 col-lg-11">
@@ -78,12 +134,20 @@
                                 <div class="text-secondary" style="font-size:0.65rem;">/ 100</div>
                             </div>
                         </div>
-                        <div class="text-secondary mt-1" style="font-size:0.72rem;">Profile Score</div>
+                        <div class="text-secondary mt-1" style="font-size:0.72rem;">
+                            {% if feedback.career_aspiration and feedback.career_aspiration.target_role %}
+                            {{ feedback.career_aspiration.target_role[:16] }} Readiness
+                            {% else %}Profile Score{% endif %}
+                        </div>
                     </div>
 
                     <div class="col">
                         <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                            <h5 class="mb-0 fw-bold text-white">Market Readiness Overview</h5>
+                            <h5 class="mb-0 fw-bold text-white">
+                                {% if feedback.career_aspiration and feedback.career_aspiration.target_role %}
+                                Readiness for {{ feedback.career_aspiration.target_role }}
+                                {% else %}Market Readiness Overview{% endif %}
+                            </h5>
                             <span id="score-label" class="badge rounded-pill px-3 py-1" style="font-size:0.75rem;"></span>
                         </div>
                         <div id="progress-bar-wrap" class="mb-2">
@@ -255,11 +319,19 @@
                                 {% else %}bg-secondary bg-opacity-20 text-secondary{% endif %}"
                                   style="font-size:0.68rem;">{{ path.demand }} Demand</span>
                         </div>
-                        {% if path.salary_range %}
-                        <div class="text-info mb-1" style="font-size:0.78rem;">
-                            <i class="fa-solid fa-sack-dollar me-1"></i>{{ path.salary_range }}
+                        <div class="d-flex flex-wrap gap-3 mb-1" style="font-size:0.78rem;">
+                            {% if path.salary_range %}
+                            <span class="text-info"><i class="fa-solid fa-sack-dollar me-1"></i>{{ path.salary_range }}</span>
+                            {% endif %}
+                            {% if path.readiness %}
+                            <span class="
+                                {% if path.readiness == 'Ready Now' %}text-success
+                                {% elif path.readiness == '3-6 Months' %}text-warning
+                                {% else %}text-secondary{% endif %}">
+                                <i class="fa-regular fa-clock me-1"></i>{{ path.readiness }}
+                            </span>
+                            {% endif %}
                         </div>
-                        {% endif %}
                         {% if path.why_fit %}
                         <div class="text-secondary" style="font-size:0.75rem;">{{ path.why_fit }}</div>
                         {% endif %}
@@ -362,6 +434,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderMarkdown(el, md) {
         if (!el || !md) return;
         el.innerHTML = typeof marked !== 'undefined' ? marked.parse(md) : md.replace(/\n/g, '<br>');
+    }
+
+    // ── Career vision banner background ─────────────────────────────────────
+    const banner = document.querySelector('.advisor-vision-banner');
+    if (banner) {
+        const t = banner.dataset.transition;
+        const bg = t === 'Pivot' ? 'rgba(234,179,8,0.06)'
+                 : t === 'Entry' ? 'rgba(34,211,238,0.06)'
+                 : 'rgba(34,197,94,0.06)';
+        banner.style.background = bg;
     }
 
     // ── Score ring animation ─────────────────────────────────────────────────
