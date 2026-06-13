@@ -572,20 +572,72 @@ textarea.form-glass::placeholder {
     }
 }
 
+/* Tab nav — horizontal scroll on mobile instead of wrapping onto multiple rows */
+@media (max-width: 767.98px) {
+    #advisorTabs {
+        display: flex;
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 4px;
+        gap: 0.35rem !important;
+    }
+    #advisorTabs::-webkit-scrollbar { display: none; }
+    #advisorTabs .nav-item { flex-shrink: 0; }
+    #advisorTabs .nav-link {
+        white-space: nowrap;
+        font-size: 0.78rem;
+        padding: 5px 10px;
+    }
+}
+
 /* Tab report body height — shorter on mobile so it doesn't eat the whole screen */
 @media (max-width: 767.98px) {
     .advisor-report-body {
         max-height: 45vh !important;
+        font-size: 0.85rem !important;
     }
 }
 
 @media (max-width: 575.98px) {
     .advisor-report-body {
         max-height: 38vh !important;
+        font-size: 0.82rem !important;
     }
 }
 
-/* Cover letter action buttons — wrap cleanly on mobile */
+/* Vision banner — compact stacking on mobile */
+@media (max-width: 575.98px) {
+    .advisor-vision-banner {
+        flex-direction: column;
+        gap: 0.6rem !important;
+        padding: 0.75rem !important;
+    }
+    .advisor-vision-banner .flex-shrink-0 {
+        display: flex !important;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: unset !important;
+        text-align: left;
+    }
+    .advisor-vision-banner .flex-shrink-0 .fs-2 { font-size: 1.4rem !important; }
+}
+
+/* Generate / action buttons — full width on xs */
+@media (max-width: 575.98px) {
+    #first-generate-btn,
+    #generate-advisor-btn,
+    #cl-generate-btn,
+    #cl-generate-btn-nf {
+        width: 100%;
+        justify-content: center;
+    }
+    .advisor-score-actions #generate-advisor-btn { width: auto; }
+}
+
+/* Cover letter action buttons — stack full-width on mobile */
 @media (max-width: 575.98px) {
     .cl-action-btns {
         flex-direction: column;
@@ -597,11 +649,55 @@ textarea.form-glass::placeholder {
     }
 }
 
-/* Advisor tab pills — wrap and shrink on very small screens */
+/* Cover letter textarea — shorter on mobile */
+@media (max-width: 575.98px) {
+    #cl-job-desc, #cl-job-desc-nf { min-height: 80px; }
+    #cl-output, #cl-output-nf { font-size: 0.78rem !important; }
+}
+
+/* Career path / cert cards — tighter padding on mobile */
+@media (max-width: 575.98px) {
+    .advisor-path-card,
+    .advisor-cert-card {
+        padding: 0.65rem !important;
+    }
+    .advisor-path-card .d-flex.flex-wrap.gap-3 {
+        gap: 0.5rem !important;
+    }
+}
+
+/* Right column — add top gap when it stacks under the main report on tablet */
+@media (max-width: 991.98px) {
+    .col-12.col-lg-4 > .glass-card:first-child {
+        margin-top: 0;
+    }
+}
+
+/* Advisor tab pills — shrink further on very small screens */
 @media (max-width: 400px) {
     #advisorTabs .nav-link {
-        font-size: 0.75rem;
-        padding: 4px 8px;
+        font-size: 0.72rem;
+        padding: 4px 7px;
+    }
+}
+
+/* No-resume / ready-to-analyze state cards — reduce padding on xs */
+@media (max-width: 575.98px) {
+    .col-md-7 .glass-card.p-5 {
+        padding: 1.5rem !important;
+    }
+    .col-md-7 .glass-card.p-5 .fs-1 {
+        font-size: 2rem !important;
+    }
+}
+
+/* Skill gap chips — allow single-column wrap on very small screens */
+@media (max-width: 400px) {
+    .advisor-score-row .d-flex.flex-wrap.gap-2 {
+        gap: 0.35rem !important;
+    }
+    .advisor-score-row .badge {
+        font-size: 0.68rem !important;
     }
 }
 
