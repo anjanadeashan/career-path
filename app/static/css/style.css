@@ -79,6 +79,37 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--text-primary);
 }
 
+/* Mobile Navbar Dropdown & Auth Layout styling */
+@media (max-width: 991.98px) {
+    .navbar-collapse .dropdown-menu {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0.5rem 0;
+        margin-top: 0.5rem;
+        border-top: 1px solid var(--border-glass);
+        border-radius: 0;
+    }
+    .navbar-collapse .dropdown-item {
+        color: var(--text-secondary);
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        text-align: center;
+    }
+    .navbar-collapse .dropdown-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-primary);
+    }
+    /* Sign Out button specific layout */
+    .navbar-collapse [href*="logout"],
+    .navbar-collapse .text-danger {
+        margin-top: 0.5rem;
+        text-align: center;
+        display: block;
+        width: 100%;
+    }
+}
+
 /* Animated gradient backgrounds */
 .gradient-text {
     background: var(--gradient-purple);
