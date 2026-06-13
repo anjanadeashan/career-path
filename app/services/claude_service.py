@@ -19,8 +19,9 @@ class ClaudeService:
         if self.api_key and self.api_key != "your-anthropic-claude-api-key-here":
             try:
                 self.client = anthropic.Anthropic(api_key=self.api_key)
+                logger.info("Anthropic client initialized successfully.")
             except Exception as e:
-                logger.error(f"Error initializing Anthropic client: {str(e)}")
+                logger.error(f"Error initializing Anthropic client: {str(e)}", exc_info=True)
                 self.client = None
         else:
             logger.warning("Anthropic API key not configured. Running ClaudeService in Mock Advisor fallback mode.")
